@@ -1,0 +1,12 @@
+{
+  "errorCode": 0,
+  "errorMessage": "",
+  "webOperator": {
+    "operatorId": 1,
+    "email": "root@etrel.com",
+    "password": null,
+    "blocked": false,
+    "operatorRole": "Administrator"
+  },
+  "token": "iLgqhufRqgzPOHq0"
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "user": {
+      "FirstName": "Parkplatz",
+      "LastName": "13"
+    },
+    "chargingSessionId": 1,
+    "chargingStartedTime": "10.05.2022 11:34",
+    "chargingEndedTime": "10.05.2022 15:11",
+    "timeSpentCharging": "03:36:54",
+    "activeEnergyConsumed": 11.057,
+    "chargingMode": "Fast"
+  },
+  {
+    "user": {
+      "FirstName": "Parkplatz",
+      "LastName": "13"
+    },
+    "chargingSessionId": 2,
+    "chargingStartedTime": "10.05.2022 11:34",
+    "chargingEndedTime": "10.05.2022 15:11",
+    "timeSpentCharging": "03:36:54",
+    "activeEnergyConsumed": 11.057,
+    "chargingMode": "Fast"
+  }
+]

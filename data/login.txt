@@ -1,0 +1,15 @@
+POST http://10.0.0.165/api/webOperatorLogin/
+email=root@etrel.com
+password=toor
+{
+  "errorCode": 0,
+  "errorMessage": "",
+  "webOperator": {
+    "operatorId": 1,
+    "email": "root@etrel.com",
+    "password": null,
+    "blocked": false,
+    "operatorRole": "Administrator"
+  },
+  "token": "h33VgY2bMramnigC"
+}
