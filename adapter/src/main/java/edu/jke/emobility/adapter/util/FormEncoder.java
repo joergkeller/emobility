@@ -2,8 +2,9 @@ package edu.jke.emobility.adapter.util;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap;
 import java.util.LinkedHashMap;
@@ -25,7 +26,13 @@ public class FormEncoder {
     }
 
     public FormEncoder addField(String key, LocalDateTime value) {
-        fields.put(key, DateTimeFormatter.ISO_DATE_TIME.format(value));
+        fields.put(key, DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(value));
+        return this;
+    }
+
+    public FormEncoder addField(String key, ZonedDateTime value) {
+        ZonedDateTime utc = value.withZoneSameInstant(ZoneId.of("UTC"));
+        fields.put(key, DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(utc) + "Z");
         return this;
     }
 

@@ -1,10 +1,12 @@
 # Project exclude paths
-/.gradle/
-/.idea/
-/adapter/build/
-/build/
-/domain/build/
-/usecase/build/
+.gradle/
+.idea/
+buildSrc/.gradle/
+buildSrc/build/
+adapter/build/
+build/
+domain/build/
+usecase/build/
 **/secrets.properties
 *.csv
 *.log

@@ -1,9 +1,10 @@
 package edu.jke.emobility.domain.session;
 
 import edu.jke.emobility.domain.value.ChargerId;
-import edu.jke.emobility.domain.value.Energy;
 import edu.jke.emobility.domain.value.LoadSessionId;
 
+import javax.measure.Quantity;
+import javax.measure.quantity.Energy;
 import java.time.LocalDateTime;
 
 import static java.util.Objects.requireNonNull;
@@ -13,9 +14,9 @@ public class LoadSession {
     private final LocalDateTime chargingStart;
     private final LocalDateTime chargingEnd;
     private final ChargerId chargerId;
-    private final Energy energy;
+    private final Quantity<Energy> energy;
 
-    public LoadSession(LocalDateTime chargingStart, LocalDateTime chargingEnd, ChargerId chargerId, Energy energy) {
+    public LoadSession(LocalDateTime chargingStart, LocalDateTime chargingEnd, ChargerId chargerId, Quantity<Energy> energy) {
         this.chargingStart = requireNonNull(chargingStart);
         this.chargingEnd = chargingEnd;
         this.chargerId = requireNonNull(chargerId);
@@ -38,7 +39,8 @@ public class LoadSession {
         return chargerId;
     }
 
-    public Energy getEnergy() {
+    public Quantity<Energy> getEnergy() {
         return energy;
     }
+
 }

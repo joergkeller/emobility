@@ -3,6 +3,9 @@ package edu.jke.emobility.cli;
 import edu.jke.emobility.adapter.station.StationAdapter;
 import edu.jke.emobility.adapter.writer.CsvWriterFactory;
 import edu.jke.emobility.domain.error.ApplicationException;
+import edu.jke.emobility.domain.tariff.ConstantTariffSplitter;
+import edu.jke.emobility.domain.tariff.TariffSetting;
+import edu.jke.emobility.domain.tariff.TariffSplitter;
 import edu.jke.emobility.usecase.session.RequestLoadSessionsUC;
 import edu.jke.emobility.usecase.session.WriterFactory;
 
@@ -13,8 +16,11 @@ public class CliApplication {
 
     private final StationAdapter stationAdapter = new StationAdapter();
     private final WriterFactory writerFactory = new CsvWriterFactory();
+    private final TariffSetting tariffSetting = new TariffSetting();
 
-    private final RequestLoadSessionsUC requestLoadSessionsUC = new RequestLoadSessionsUC(stationAdapter, writerFactory);
+    private final TariffSplitter tariffSplitter = new ConstantTariffSplitter(tariffSetting);
+
+    private final RequestLoadSessionsUC requestLoadSessionsUC = new RequestLoadSessionsUC(stationAdapter, tariffSplitter, writerFactory);
 
     public static void main(String... args) throws ApplicationException {
         new CliApplication().run();

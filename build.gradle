@@ -13,8 +13,8 @@ dependencies {
     implementation project(':adapter')
     implementation project(':usecase')
     implementation project(':domain')
-    implementation 'org.springframework.boot:spring-boot-starter:2.7.3'
 
+    implementation 'org.springframework.boot:spring-boot-starter:2.7.3'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.0'

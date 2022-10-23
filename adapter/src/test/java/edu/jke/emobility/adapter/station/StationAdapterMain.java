@@ -3,7 +3,7 @@ package edu.jke.emobility.adapter.station;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public class StationAdapterMain {
@@ -38,7 +38,7 @@ public class StationAdapterMain {
         log.info("Load sessions from {}", hostname);
         new StationAdapter()
                 .login(hostname, System.getenv("user"), System.getenv("password"))
-                .loadSessions(hostname, LocalDateTime.parse("2022-04-01T00:00:00"), LocalDateTime.now());
+                .loadSessions(hostname, ZonedDateTime.parse("2022-04-01T00:00:00Z"), ZonedDateTime.now());
 
 //        server.shutdown();
     }

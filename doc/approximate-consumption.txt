@@ -1,0 +1,14 @@
+Simple measure
+-----
+Parkplatz 13: Sum of errors^2 is 43.93 for 36 sessions
+Parkplatz 16: Sum of errors^2 is 2.38 for 11 sessions
+
+Constant power
+-----
+Parkplatz 13: Sum of errors^2 is 20.92 for 36 sessions, total 872 Wh
+Parkplatz 16: Sum of errors^2 is 1.62 for 11 sessions, total -15 Wh
+
+Linear interpolation
+-----
+Parkplatz 13: Sum of errors^2 is 18.75 for 36 sessions, total -4789 Wh
+Parkplatz 16: Sum of errors^2 is 2.00 for 11 sessions, total -839 Wh

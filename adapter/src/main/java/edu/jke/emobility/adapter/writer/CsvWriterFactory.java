@@ -10,7 +10,7 @@ public class CsvWriterFactory implements WriterFactory {
 
     @Override
     public <T> OutputWriter<T> createWriter(String baseName, List<String> fieldList, Function<T, List<String>> fieldMapper) {
-        return new CsvOutputWriter(baseName, fieldList, fieldMapper);
+        return new CsvOutputWriter<>(baseName, fieldList, fieldMapper);
     }
 
 }
