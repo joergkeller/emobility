@@ -1,5 +1,6 @@
 package edu.jke.emobility.adapter.station;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -10,7 +11,7 @@ import edu.jke.emobility.domain.session.LoadSession;
 import edu.jke.emobility.domain.session.PowerMeasure;
 import edu.jke.emobility.domain.session.PowerProfile;
 import edu.jke.emobility.domain.util.EnergyUtil;
-import edu.jke.emobility.domain.value.ChargerId;
+import edu.jke.emobility.domain.value.UserIdentification;
 import edu.jke.emobility.usecase.session.StationEndpoint;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
@@ -68,11 +69,18 @@ public class StationAdapter implements StationEndpoint {
         return this;
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static record LoginResponseEntity(
+        int errorCode,
+        String errorMessage,
+        String token
+    ) {}
+
     private void consumeLoginResponse(String json) throws JsonProcessingException {
         Objects.requireNonNull(json);
         LoginResponseEntity loginResponse = objectMapper.readValue(json, LoginResponseEntity.class);
-        if (loginResponse.getErrorCode() != 0) throw new AuthenticationException(loginResponse.getErrorMessage());
-        token = loginResponse.getToken();
+        if (loginResponse.errorCode() != 0) throw new AuthenticationException(loginResponse.errorMessage());
+        token = loginResponse.token();
     }
 
     public String loadSessions(String stationName, ZonedDateTime from, ZonedDateTime to) {
@@ -148,29 +156,48 @@ public class StationAdapter implements StationEndpoint {
         token = null;
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static record SessionResponseEntity(
+        int errorCode,
+        String errorMessage,
+        List<SessionEntity> content,
+        PagingInfoEntity pagingInfo
+    ) {}
+
     @NotNull
     List<SessionEntity> parseSessionResponse(String json) {
         try {
             SessionResponseEntity sessionResponse = objectMapper.readValue(json, SessionResponseEntity.class);
-            if (sessionResponse.getErrorCode() != 0) {
-                throw new ServiceException(sessionResponse.getErrorMessage());
+            if (sessionResponse.errorCode() != 0) {
+                throw new ServiceException(sessionResponse.errorMessage());
             }
-            return sessionResponse.getContent();
+            return sessionResponse.content();
         } catch (IOException e) {
             throw new ServiceException(e);
         }
     }
 
-    LoadSession asLoadSession(SessionEntity entities) {
-        ZonedDateTime started = entities.getChargingStartedTime();
-        ZonedDateTime ended = entities.getChargingEndedTime();
-        UserEntity user = entities.getUser();
-        double energy_kWh = entities.getActiveEnergyConsumed();
+    LoadSession asLoadSession(SessionEntity entity) {
+        ZonedDateTime started = entity.chargingStartedTime();
+        ZonedDateTime ended = entity.chargingEndedTime();
+        UserIdentification identification = new UserIdentification();
+        if (entity.user() != null) {
+            identification = new UserIdentification(
+                    String.format("%s %s", entity.user().firstName(), entity.user().lastName()),
+                    entity.userIdentification().userIdentificationType(),
+                    entity.userIdentification().identificationCode(),
+                    entity.userIdentification().number()
+            );
+        }
         return new LoadSession(
                 started.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime(),
                 ended == null ? null : ended.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime(),
-                new ChargerId(String.format("%s %s", user.getFirstName(), user.getLastName())),
-                EnergyUtil.kWh(energy_kWh));
+                identification,
+                EnergyUtil.kWh(entity.activeEnergyConsumed()),
+                EnergyUtil.kW(entity.maxSessionPower()),
+                entity.chargingMode() == null ? "Normal" : entity.chargingMode(),
+                entity.chargingSessionStopReason()
+        );
     }
 
     @Override
@@ -202,12 +229,13 @@ public class StationAdapter implements StationEndpoint {
     @Override
     public PowerProfile importProfile(String stationName, LoadSession session) {
         if (isLoggedOut()) login(stationName, this.username, this.password);
-        ZonedDateTime start = ZonedDateTime.of(session.getChargingStart(), ZoneId.systemDefault());
-        ZonedDateTime end = ZonedDateTime.of(session.getChargingEnd(), ZoneId.systemDefault());
+        ZonedDateTime start = ZonedDateTime.of(session.chargingStart(), ZoneId.systemDefault());
+        ZonedDateTime end = ZonedDateTime.of(session.chargingEnd(), ZoneId.systemDefault());
         String json = loadProfile(stationName, start, end);
         List<PowerMeasure> measures = parseProfileResponse(json).stream()
                 .map(this::asPowerMeasure)
                 .collect(Collectors.toList());
         return new PowerProfile(session, measures);
     }
+
 }

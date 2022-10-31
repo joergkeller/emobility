@@ -36,8 +36,8 @@ public class ConstantTariffSplitter implements TariffSplitter {
 
     @Override
     public SessionConsumption calculateConsumptions(PowerProfile profile) {
-        LocalDateTime start = profile.session().getChargingStart();
-        LocalDateTime end = profile.session().getChargingEnd();
+        LocalDateTime start = profile.session().chargingStart();
+        LocalDateTime end = profile.session().chargingEnd();
         List<LocalDateTime> tariffChangeTimes = tariff.findTariffChangeTimes(start, end);
 
         ArrayList<EnergyConsumption> consumptions = new ArrayList<>();
@@ -60,7 +60,7 @@ public class ConstantTariffSplitter implements TariffSplitter {
                 .reduce(ZERO_ENERGY, Quantity::add)
                 .to(WATT_HOUR);
 
-        Quantity<Energy> sessionEnergy = profile.session().getEnergy().to(WATT_HOUR);
+        Quantity<Energy> sessionEnergy = profile.session().energy().to(WATT_HOUR);
         Number scalingFactor = Integer.valueOf(1);
         if (totalEnergy.getValue().doubleValue() > 0.0) scalingFactor = sessionEnergy.divide(totalEnergy).getValue();
         Quantity<Energy> delta = totalEnergy.subtract(sessionEnergy);

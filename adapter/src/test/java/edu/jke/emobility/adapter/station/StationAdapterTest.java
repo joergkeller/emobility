@@ -78,9 +78,11 @@ public class StationAdapterTest {
     void parseSessionResponse() {
         List<SessionEntity> sessions = stationAdapter.parseSessionResponse(sessionJson);
         assertThat(sessions.size()).isEqualTo(8);
-        assertThat(sessions.get(0).getChargingSessionId()).isEqualTo(10);
-        assertThat(sessions.get(0).getUser().getFirstName()).isEqualTo("Parkplatz");
-        assertThat(sessions.get(0).getUser().getLastName()).isEqualTo("16");
+        assertThat(sessions.get(0).chargingSessionId()).isEqualTo(10);
+        assertThat(sessions.get(0).user().firstName()).isEqualTo("Parkplatz");
+        assertThat(sessions.get(0).user().lastName()).isEqualTo("16");
+        assertThat(sessions.get(0).activeEnergyConsumed()).isEqualTo(21.467152);
+        assertThat(sessions.get(0).maxSessionPower()).isEqualTo(3.392);
     }
 
     @Test
@@ -101,12 +103,16 @@ public class StationAdapterTest {
 
     @Test
     void asLoadSession() {
+        UserIdentification identification = new UserIdentification("RfidCard", "1234567890", "0055");
         UserEntity user = new UserEntity("Last", "First");
         ZonedDateTime start = ZonedDateTime.now();
-        SessionEntity entity = new SessionEntity(user, 123, start, null, null, 0, 0, 12.5);
+        SessionEntity entity = new SessionEntity(identification, user, 123, start, null, null, 0, 0, 12.5, 3.7, "Fast", "LocalStopUserDisconnectedCableFromVehicle");
         LoadSession session = stationAdapter.asLoadSession(entity);
-        assertThat(session.getChargerId().toString()).isEqualTo("First Last");
-        assertThat(session.getChargingStart()).isEqualTo(start.toLocalDateTime());
-        assertThat(session.getEnergy().toString()).isEqualTo("12.5 kWh");
+        assertThat(session.userIdentification().name()).isEqualTo("First Last");
+        assertThat(session.chargingStart()).isEqualTo(start.toLocalDateTime());
+        assertThat(session.energy().toString()).isEqualTo("12.5 kWh");
+        assertThat(session.maxPower().toString()).isEqualTo("3.7 kW");
+        assertThat(session.mode()).isEqualTo("Fast");
+        assertThat(session.stopReason()).isEqualTo("LocalStopUserDisconnectedCableFromVehicle");
     }
 }

@@ -1,46 +1,26 @@
 package edu.jke.emobility.domain.session;
 
-import edu.jke.emobility.domain.value.ChargerId;
 import edu.jke.emobility.domain.value.LoadSessionId;
+import edu.jke.emobility.domain.value.UserIdentification;
 
 import javax.measure.Quantity;
 import javax.measure.quantity.Energy;
+import javax.measure.quantity.Power;
 import java.time.LocalDateTime;
 
-import static java.util.Objects.requireNonNull;
+public record LoadSession(
+        LoadSessionId sessionId,
+        LocalDateTime chargingStart,
+        LocalDateTime chargingEnd,
+        UserIdentification userIdentification,
+        Quantity<Energy> energy,
+        Quantity<Power> maxPower,
+        String mode,
+        String stopReason
+) {
 
-public class LoadSession {
-    private final LoadSessionId id = new LoadSessionId();
-    private final LocalDateTime chargingStart;
-    private final LocalDateTime chargingEnd;
-    private final ChargerId chargerId;
-    private final Quantity<Energy> energy;
-
-    public LoadSession(LocalDateTime chargingStart, LocalDateTime chargingEnd, ChargerId chargerId, Quantity<Energy> energy) {
-        this.chargingStart = requireNonNull(chargingStart);
-        this.chargingEnd = chargingEnd;
-        this.chargerId = requireNonNull(chargerId);
-        this.energy = requireNonNull(energy);
-    }
-
-    public LoadSessionId getId() {
-        return id;
-    }
-
-    public LocalDateTime getChargingStart() {
-        return chargingStart;
-    }
-
-    public LocalDateTime getChargingEnd() {
-        return chargingEnd;
-    }
-
-    public ChargerId getChargerId() {
-        return chargerId;
-    }
-
-    public Quantity<Energy> getEnergy() {
-        return energy;
+    public LoadSession(LocalDateTime chargingStart, LocalDateTime chargingEnd, UserIdentification userIdentification, Quantity<Energy> energy, Quantity<Power> maxPower, String mode, String stopReason) {
+        this(new LoadSessionId(), chargingStart, chargingEnd, userIdentification, energy, maxPower, mode, stopReason);
     }
 
 }

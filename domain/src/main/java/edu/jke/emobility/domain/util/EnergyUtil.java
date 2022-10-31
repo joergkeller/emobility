@@ -7,33 +7,32 @@ import javax.measure.Unit;
 import javax.measure.quantity.Energy;
 import javax.measure.quantity.Power;
 import javax.measure.quantity.Time;
-import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import static edu.jke.emobility.domain.value.CustomUnits.WATT_HOUR;
-import static edu.jke.emobility.domain.value.CustomUnits.ZERO_ENERGY;
 import static javax.measure.MetricPrefix.KILO;
 import static tech.units.indriya.quantity.Quantities.getQuantity;
+import static tech.units.indriya.unit.Units.WATT;
 
 public class EnergyUtil {
 
-    public static Quantity<Energy> kWh(long amountKWh) {
-        return getQuantity(amountKWh, KILO(WATT_HOUR));
+    public static Quantity<Power> W(Number amountW) {
+        return getQuantity(amountW, WATT);
     }
 
-    public static Quantity<Energy> kWh(double amountKWh) {
-        return getQuantity(amountKWh, KILO(WATT_HOUR));
+    public static Quantity<Power> kW(Number amountkW) {
+        return getQuantity(amountkW, KILO(WATT));
     }
 
-    public static Quantity<Energy> Wh(long amountWh) {
+    public static Quantity<Energy> Wh(Number amountWh) {
         return getQuantity(amountWh, WATT_HOUR);
     }
 
-    public static Quantity<Energy> Wh(double amountWh) {
-        return getQuantity(amountWh, WATT_HOUR);
+    public static Quantity<Energy> kWh(Number amountKWh) {
+        return getQuantity(amountKWh, KILO(WATT_HOUR));
     }
 
-    public static Quantity<Time> time(long amount, Unit<Time> timeUnit) {
+    public static Quantity<Time> time(Number amount, Unit<Time> timeUnit) {
         return getQuantity(amount, timeUnit);
     }
 
@@ -62,4 +61,5 @@ public class EnergyUtil {
     public static String format(Quantity<Energy> value, Unit<Energy> unit) {
         return String.format("%,.3f %s", value.to(unit).getValue().doubleValue(), unit.toString());
     }
+
 }

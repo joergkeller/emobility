@@ -2,8 +2,8 @@ package edu.jke.emobility.domain.session;
 
 import edu.jke.emobility.domain.error.ConsistencyException;
 import edu.jke.emobility.domain.tariff.SessionConsumption;
-import edu.jke.emobility.domain.value.ChargerId;
 import edu.jke.emobility.domain.value.CustomUnits;
+import edu.jke.emobility.domain.value.UserIdentification;
 
 import javax.measure.Quantity;
 import javax.measure.quantity.Energy;
@@ -16,7 +16,7 @@ import static edu.jke.emobility.domain.util.DateUtil.latest;
  * Summarize charging session energy consumption over a given period.
  */
 public record SessionSummary(
-        ChargerId chargerId,
+        UserIdentification userIdentification,
         LocalDateTime start,
         LocalDateTime end,
         long sessionCount,
@@ -29,21 +29,21 @@ public record SessionSummary(
     }
 
     public SessionSummary add(SessionConsumption consumption) {
-        if (chargerId == null || chargerId.equals(consumption.session().getChargerId())) {
+        if (userIdentification == null || userIdentification.equals(consumption.session().userIdentification())) {
             return new SessionSummary(
-                    consumption.session().getChargerId(),
-                    earliest(start, consumption.session().getChargingStart()),
-                    latest(end, consumption.session().getChargingEnd()),
+                    consumption.session().userIdentification(),
+                    earliest(start, consumption.session().chargingStart()),
+                    latest(end, consumption.session().chargingEnd()),
                     sessionCount + 1,
-                    energy.add(consumption.session().getEnergy()),
+                    energy.add(consumption.session().energy()),
                     basicEnergy.add(consumption.basicEnergy()),
                     elevatedEnergy.add(consumption.elevatedEnergy()));
         } else {
-            throw new ConsistencyException("Mismatching charger ids %s and %s".formatted(chargerId, consumption.session().getChargerId()));
+            throw new ConsistencyException("Mismatching charger ids %s and %s".formatted(userIdentification, consumption.session().userIdentification()));
         }
     }
 
     public boolean isValid() {
-        return chargerId != null;
+        return userIdentification != null;
     }
 }

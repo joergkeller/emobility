@@ -4,7 +4,7 @@ import edu.jke.emobility.domain.error.ConsistencyException;
 import edu.jke.emobility.domain.tariff.SessionConsumption;
 import edu.jke.emobility.domain.util.DateUtil;
 import edu.jke.emobility.domain.util.EnergyUtil;
-import edu.jke.emobility.domain.value.ChargerId;
+import edu.jke.emobility.domain.value.UserIdentification;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -12,6 +12,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 
 import static edu.jke.emobility.domain.value.CustomUnits.ZERO_ENERGY;
+import static edu.jke.emobility.domain.value.CustomUnits.ZERO_POWER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -19,7 +20,7 @@ public class SessionSummaryTest {
 
     @Test
     void validSession() {
-        SessionSummary summary = new SessionSummary(new ChargerId("dummy"), LocalDateTime.now(), LocalDateTime.MAX, 1, EnergyUtil.Wh(5), ZERO_ENERGY, ZERO_ENERGY);
+        SessionSummary summary = new SessionSummary(new UserIdentification("dummy"), LocalDateTime.now(), LocalDateTime.MAX, 1, EnergyUtil.Wh(5), ZERO_ENERGY, ZERO_ENERGY);
         assertThat(summary.isValid()).isTrue();
     }
 
@@ -53,10 +54,10 @@ public class SessionSummaryTest {
 
     @Test
     void addDifferentCharger_throwsException() {
-        SessionSummary summary = new SessionSummary(new ChargerId("this"), null, null, 0, ZERO_ENERGY, ZERO_ENERGY, ZERO_ENERGY);
+        SessionSummary summary = new SessionSummary(new UserIdentification("this"), null, null, 0, ZERO_ENERGY, ZERO_ENERGY, ZERO_ENERGY);
         assertThatThrownBy(
                 () -> summary.add(new SessionConsumption(
-                        new LoadSession(LocalDateTime.now(), LocalDateTime.now(), new ChargerId("that"), EnergyUtil.Wh(5)),
+                        new LoadSession(LocalDateTime.now(), LocalDateTime.now(), new UserIdentification("that"), EnergyUtil.Wh(5), ZERO_POWER, null, null),
                         null,
                         null,
                         null))
@@ -67,11 +68,11 @@ public class SessionSummaryTest {
     void addSession_toAnEmptySummary() {
         SessionSummary empty = new SessionSummary();
         SessionSummary summary = empty.add(new SessionConsumption(
-                new LoadSession(LocalDateTime.MIN, LocalDateTime.MAX, new ChargerId("new"), EnergyUtil.Wh(555)),
+                new LoadSession(LocalDateTime.MIN, LocalDateTime.MAX, new UserIdentification("new"), EnergyUtil.Wh(555), ZERO_POWER, null, null),
                 ZERO_ENERGY,
                 ZERO_ENERGY,
                 Collections.emptyList()));
-        assertThat(summary.chargerId().toString()).isEqualTo("new");
+        assertThat(summary.userIdentification().name()).isEqualTo("new");
         assertThat(summary.energy().toString()).isEqualTo("555 Wh");
         assertThat(summary.start()).isEqualTo(LocalDateTime.MIN);
         assertThat(summary.end()).isEqualTo(LocalDateTime.MAX);

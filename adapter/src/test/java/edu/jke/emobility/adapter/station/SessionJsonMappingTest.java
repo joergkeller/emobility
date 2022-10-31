@@ -25,9 +25,9 @@ public class SessionJsonMappingTest {
     void mapSingleSessionJson() throws IOException {
         String json = Files.readString(Path.of("src/test/resources/singleSession.json"));
         SessionEntity session = mapper.readValue(json, SessionEntity.class);
-        assertThat(session.getChargingSessionId()).isEqualTo(10);
-        assertThat(session.getUser().getFirstName()).isEqualTo("Parkplatz");
-        assertThat(session.getUser().getLastName()).isEqualTo("16");
+        assertThat(session.chargingSessionId()).isEqualTo(10);
+        assertThat(session.user().firstName()).isEqualTo("Parkplatz");
+        assertThat(session.user().lastName()).isEqualTo("16");
     }
 
     @Test
@@ -35,18 +35,18 @@ public class SessionJsonMappingTest {
         String json = Files.readString(Path.of("src/test/resources/multipleSessions.json"));
         SessionEntity[] sessions = mapper.readValue(json, SessionEntity[].class);
         assertThat(sessions.length).isEqualTo(8);
-        assertThat(sessions[0].getChargingSessionId()).isEqualTo(10);
-        assertThat(sessions[1].getChargingSessionId()).isEqualTo(9);
+        assertThat(sessions[0].chargingSessionId()).isEqualTo(10);
+        assertThat(sessions[1].chargingSessionId()).isEqualTo(9);
     }
 
     @Test
     void mapSessionResponseJson() throws IOException {
         String json = Files.readString(Path.of("src/test/resources/sessionResponse.json"));
-        SessionResponseEntity response = mapper.readValue(json, SessionResponseEntity.class);
-        assertThat(response.getErrorCode()).isEqualTo(0);
-        assertThat(response.getContent().size()).isEqualTo(8);
-        assertThat(response.getPagingInfo().getNumberOfRows()).isEqualTo(response.getContent().size());
-        assertThat(response.getPagingInfo().getPageCount()).isEqualTo(1);
+        StationAdapter.SessionResponseEntity response = mapper.readValue(json, StationAdapter.SessionResponseEntity.class);
+        assertThat(response.errorCode()).isEqualTo(0);
+        assertThat(response.content().size()).isEqualTo(8);
+        assertThat(response.pagingInfo().numberOfRows()).isEqualTo(response.content().size());
+        assertThat(response.pagingInfo().pageCount()).isEqualTo(1);
     }
 
 }

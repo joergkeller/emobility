@@ -3,8 +3,7 @@ package edu.jke.emobility.domain.tariff;
 import edu.jke.emobility.domain.session.LoadSession;
 import edu.jke.emobility.domain.session.PowerMeasure;
 import edu.jke.emobility.domain.session.PowerProfile;
-import edu.jke.emobility.domain.util.EnergyUtil;
-import edu.jke.emobility.domain.value.ChargerId;
+import edu.jke.emobility.domain.value.UserIdentification;
 import org.junit.jupiter.api.Test;
 
 import javax.measure.Quantity;
@@ -12,7 +11,7 @@ import javax.measure.quantity.Energy;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static edu.jke.emobility.domain.value.CustomUnits.WATT_HOUR;
+import static edu.jke.emobility.domain.value.CustomUnits.*;
 import static javax.measure.MetricPrefix.KILO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static tech.units.indriya.quantity.Quantities.getQuantity;
@@ -27,7 +26,7 @@ public class InterpolationTariffSplitterTest {
     void singleTariff_singleProfile() {
         LocalDateTime from = LocalDateTime.parse("2022-10-09T00:00:00");
         LocalDateTime to = LocalDateTime.parse("2022-10-09T01:00:00");
-        PowerProfile profile = new PowerProfile(new LoadSession(from, to, new ChargerId("tbd"), EnergyUtil.Wh(0)), List.of(
+        PowerProfile profile = new PowerProfile(new LoadSession(from, to, new UserIdentification("tbd"), ZERO_ENERGY, ZERO_POWER, null, null), List.of(
                 new PowerMeasure(from, getQuantity(5, KILO(WATT)))));
 
         List<EnergyConsumption> consumptions = splitter.calculateConsumptions(profile).detailConsumptions();
@@ -40,7 +39,7 @@ public class InterpolationTariffSplitterTest {
     void singleTariff_longProfile() {
         LocalDateTime from = LocalDateTime.parse("2022-10-09T00:00:00");
         LocalDateTime to   = LocalDateTime.parse("2022-10-09T01:00:00");
-        PowerProfile profile = new PowerProfile(new LoadSession(from, to, new ChargerId("tbd"), EnergyUtil.Wh(0)), List.of(
+        PowerProfile profile = new PowerProfile(new LoadSession(from, to, new UserIdentification("tbd"), ZERO_ENERGY, ZERO_POWER, null, null), List.of(
                 new PowerMeasure(LocalDateTime.parse("2022-10-08T23:00:00"), getQuantity(5, KILO(WATT))),
                 new PowerMeasure(LocalDateTime.parse("2022-10-09T02:00:00"), getQuantity(5, KILO(WATT)))));
 
@@ -53,7 +52,7 @@ public class InterpolationTariffSplitterTest {
     void singleTariff_meanProfile() {
         LocalDateTime from = LocalDateTime.parse("2022-10-09T00:00:00");
         LocalDateTime to = LocalDateTime.parse("2022-10-09T01:00:00");
-        PowerProfile profile = new PowerProfile(new LoadSession(from, to, new ChargerId("tbd"), EnergyUtil.Wh(0)), List.of(
+        PowerProfile profile = new PowerProfile(new LoadSession(from, to, new UserIdentification("tbd"), ZERO_ENERGY, ZERO_POWER, null, null), List.of(
                 new PowerMeasure(from, getQuantity(6, KILO(WATT))),
                 new PowerMeasure(to, getQuantity(4, KILO(WATT)))));
 
@@ -66,7 +65,7 @@ public class InterpolationTariffSplitterTest {
     void singleTariff_changingProfile() {
         LocalDateTime from = LocalDateTime.parse("2022-10-09T00:00:00");
         LocalDateTime to = LocalDateTime.parse("2022-10-09T01:00:00");
-        PowerProfile profile = new PowerProfile(new LoadSession(from, to, new ChargerId("tbd"), EnergyUtil.Wh(0)), List.of(
+        PowerProfile profile = new PowerProfile(new LoadSession(from, to, new UserIdentification("tbd"), ZERO_ENERGY, ZERO_POWER, null, null), List.of(
                 new PowerMeasure(LocalDateTime.parse("2022-10-09T00:20:00"), getQuantity(6, KILO(WATT))),
                 new PowerMeasure(LocalDateTime.parse("2022-10-09T01:00:00"), getQuantity(3, KILO(WATT)))));
 

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.ZonedDateTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record ProfileEntity(
+record ProfileEntity(
         ZonedDateTime time,
         @JsonProperty("connector1")
         double connectorPower
