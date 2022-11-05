@@ -6,11 +6,14 @@ import edu.jke.emobility.domain.session.SessionSummary;
 import edu.jke.emobility.domain.tariff.SessionConsumption;
 import edu.jke.emobility.domain.tariff.TariffSplitter;
 import edu.jke.emobility.domain.value.CustomUnits;
+import edu.jke.emobility.usecase.error.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.SocketTimeoutException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -105,6 +108,13 @@ public class RequestLoadSessionsUC {
                     .map(session -> stationAdapter.importProfile(name, session))
                     .map(tariffSplitter::calculateConsumptions)
                     .collect(Collectors.toList());
+        } catch(ServiceException exception) {
+            if (exception.getCause() instanceof SocketTimeoutException) {
+                log.warn("Station {} is not available", name);
+                return Collections.emptyList();
+            } else {
+                throw exception;
+            }
         } finally {
             stationAdapter.logout();
         }

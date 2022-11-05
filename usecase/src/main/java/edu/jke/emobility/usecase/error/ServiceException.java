@@ -1,4 +1,4 @@
-package edu.jke.emobility.adapter.error;
+package edu.jke.emobility.usecase.error;
 
 public class ServiceException extends RuntimeException {
 

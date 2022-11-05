@@ -1,6 +1,6 @@
 package edu.jke.emobility.adapter.writer;
 
-import edu.jke.emobility.adapter.error.ServiceException;
+import edu.jke.emobility.usecase.error.ServiceException;
 import edu.jke.emobility.usecase.session.OutputWriter;
 
 import java.io.BufferedWriter;
