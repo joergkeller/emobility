@@ -104,7 +104,7 @@ public class RequestLoadSessionsUC {
             List<LoadSession> sessions = stationAdapter.importSessions(name, request.from(), request.to());
 
             return sessions.stream()
-                    .filter(session -> !session.userIdentification().name().equals("Unknown"))
+                    .filter(session -> session.isValid())
                     .map(session -> stationAdapter.importProfile(name, session))
                     .map(tariffSplitter::calculateConsumptions)
                     .collect(Collectors.toList());

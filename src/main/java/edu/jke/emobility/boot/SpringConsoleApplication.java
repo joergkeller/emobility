@@ -26,10 +26,15 @@ public class SpringConsoleApplication implements CommandLineRunner {
     private RequestLoadSessionsUC loadSessions;
 
     private LocalDateTime startTimestamp;
+    private LocalDateTime endTimestamp = LocalDateTime.now();
     private List<String> chargerNames;
 
     public void setStartTimestamp(LocalDateTime timestamp) {
         this.startTimestamp = timestamp;
+    }
+
+    public void setEndTimestamp(LocalDateTime timestamp) {
+        this.endTimestamp = timestamp;
     }
 
     public void setChargerNames(List<String> chargerNames) {
@@ -39,7 +44,6 @@ public class SpringConsoleApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         log.info("Loading charger sessions from {}", chargerNames);
-        LocalDateTime endTimestamp = LocalDateTime.now();
         RequestLoadSessionsUC.Request request = loadSessions.validate(chargerNames, startTimestamp, endTimestamp);
         loadSessions.invoke(request);
     }

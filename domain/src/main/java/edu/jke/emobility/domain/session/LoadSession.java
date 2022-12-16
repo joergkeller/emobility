@@ -8,6 +8,9 @@ import javax.measure.quantity.Energy;
 import javax.measure.quantity.Power;
 import java.time.LocalDateTime;
 
+import static edu.jke.emobility.domain.value.CustomUnits.WATT_HOUR;
+import static javax.measure.MetricPrefix.KILO;
+
 public record LoadSession(
         LoadSessionId sessionId,
         LocalDateTime chargingStart,
@@ -23,4 +26,9 @@ public record LoadSession(
         this(new LoadSessionId(), chargingStart, chargingEnd, userIdentification, energy, maxPower, mode, stopReason);
     }
 
+    public boolean isValid() {
+        if (userIdentification.name().equals("Unknown")) return false;
+        if (energy.to(KILO(WATT_HOUR)).getValue().longValue() > 1000) return false;
+        return true;
+    }
 }
