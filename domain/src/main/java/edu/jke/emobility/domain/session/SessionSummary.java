@@ -30,10 +30,13 @@ public record SessionSummary(
 
     public SessionSummary add(SessionConsumption consumption) {
         if (userIdentification == null || userIdentification.equals(consumption.session().userIdentification())) {
+            LocalDateTime sessionStart = consumption.session().chargingStart();
+            LocalDateTime sessionEnd = consumption.session().chargingEnd();
+            if (sessionEnd == null) sessionEnd = LocalDateTime.now();
             return new SessionSummary(
                     consumption.session().userIdentification(),
-                    earliest(start, consumption.session().chargingStart()),
-                    latest(end, consumption.session().chargingEnd()),
+                    earliest(start, sessionStart),
+                    latest(end, sessionEnd),
                     sessionCount + 1,
                     energy.add(consumption.session().energy()),
                     basicEnergy.add(consumption.basicEnergy()),

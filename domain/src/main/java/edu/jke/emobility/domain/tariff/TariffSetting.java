@@ -38,7 +38,7 @@ public class TariffSetting {
             DayOfWeek.WEDNESDAY, new ElevationTime(LocalTime.of(7, 0), LocalTime.of(20, 0)),
             DayOfWeek.THURSDAY,  new ElevationTime(LocalTime.of(7, 0), LocalTime.of(20, 0)),
             DayOfWeek.FRIDAY,    new ElevationTime(LocalTime.of(7, 0), LocalTime.of(20, 0)),
-            DayOfWeek.SATURDAY,  new ElevationTime(LocalTime.of(7, 0), LocalTime.of(13, 0)),
+            DayOfWeek.SATURDAY,  new ElevationTime(null, null), // new ElevationTime(LocalTime.of(7, 0), LocalTime.of(13, 0)),
             DayOfWeek.SUNDAY,    new ElevationTime(null, null)
     );
 

@@ -114,10 +114,9 @@ public class StationAdapter implements StationEndpoint {
     public String loadProfile(String stationName, ZonedDateTime from, ZonedDateTime to) {
         if (isLoggedOut()) throw new AuthenticationException("Missing token");
         String params = new FormEncoder()
-                .addField("fromTime", from.truncatedTo(ChronoUnit.MINUTES))
-                .addField("toTime", to.truncatedTo(ChronoUnit.MINUTES).plusMinutes(5))
                 .addField("measure", "connector1")
-                .asUrlEncoded();
+                .addField("fromTime", from.truncatedTo(ChronoUnit.MINUTES))
+                .addField("toTime", to.truncatedTo(ChronoUnit.MINUTES).plusMinutes(5)).asUrlEncoded();
         Request request = new Request.Builder()
                 .url("http://" + stationName + "/api/powerProfile/?" + params)
                 .addHeader("Authorization", "Bearer " + token)
@@ -181,7 +180,9 @@ public class StationAdapter implements StationEndpoint {
         ZonedDateTime started = entity.chargingStartedTime();
         ZonedDateTime ended = entity.chargingEndedTime();
         UserIdentification identification = new UserIdentification();
-        if (entity.user() != null) {
+        if (entity.user() == null) {
+            log.warn("Missing user at {} loading {} kWh", started, entity.activeEnergyConsumed());
+        } else {
             identification = new UserIdentification(
                     String.format("%s %s", entity.user().firstName(), entity.user().lastName()),
                     entity.userIdentification().userIdentificationType(),
@@ -203,8 +204,10 @@ public class StationAdapter implements StationEndpoint {
     @Override
     public List<LoadSession> importSessions(String stationName, LocalDateTime from, LocalDateTime to) {
         if (isLoggedOut()) login(stationName, this.username, this.password);
-        ZonedDateTime start = ZonedDateTime.of(from, ZoneId.systemDefault());
-        ZonedDateTime end = ZonedDateTime.of(to, ZoneId.systemDefault());
+
+        ZoneId zoneId = ZoneId.systemDefault();
+        ZonedDateTime start = ZonedDateTime.of(from, zoneId);
+        ZonedDateTime end = ZonedDateTime.of(to, zoneId);
         String json = loadSessions(stationName, start, end);
         return parseSessionResponse(json).stream()
                 .map(this::asLoadSession)
@@ -229,8 +232,12 @@ public class StationAdapter implements StationEndpoint {
     @Override
     public PowerProfile importProfile(String stationName, LoadSession session) {
         if (isLoggedOut()) login(stationName, this.username, this.password);
-        ZonedDateTime start = ZonedDateTime.of(session.chargingStart(), ZoneId.systemDefault());
-        ZonedDateTime end = ZonedDateTime.of(session.chargingEnd(), ZoneId.systemDefault());
+
+        LocalDateTime chargingStart = session.chargingStart();
+        LocalDateTime chargingEnd = session.chargingEnd();
+        ZoneId zoneId = ZoneId.systemDefault();
+        ZonedDateTime start = ZonedDateTime.of(chargingStart, zoneId);
+        ZonedDateTime end = chargingEnd != null ? ZonedDateTime.of(chargingEnd, zoneId) : ZonedDateTime.now();
         String json = loadProfile(stationName, start, end);
         List<PowerMeasure> measures = parseProfileResponse(json).stream()
                 .map(this::asPowerMeasure)

@@ -1,16 +1,18 @@
 root@etrel.com
 toor
 
-04	Oederlin	http://10.0.0.214/
-05	Oederlin	http://10.0.0.248/
+04	Lüthi   	http://10.0.0.214/
+05	Lüthi   	http://10.0.0.248/
 06	Häusermann	http://10.0.0.241/
+08  Buck        http://10.0.0.150
 10	Lobsiger	http://10.0.0.225/
-13	Ohlin		http://10.0.0.152/#!/sessions
+13	Ohlin		http://10.0.0.152/
 16	Schlegel	http://10.0.0.165/
-20	Kreis		http://10.0.0.209/
-24	Oederlin	http://10.0.0.234/
+20	Anet		http://10.0.0.209/
+24	Lüthi   	http://10.0.0.234/
 
-
+Konfiguration > Device configuration > Zeit- und Spracheinstellungen > Zeiteinstellungen
+Zeitsynchronisation (NTP): pool.ntp.org,time.windows.com
 
 
 POST http://10.0.0.152/api/chargingSession/

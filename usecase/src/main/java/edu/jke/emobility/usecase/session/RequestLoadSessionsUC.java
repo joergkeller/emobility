@@ -29,8 +29,6 @@ import static tech.units.indriya.unit.Units.WATT;
  */
 public class RequestLoadSessionsUC {
 
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-
     public record Request(List<String> stationNames, LocalDateTime from, LocalDateTime to) {}
 
     private static final Logger log = LoggerFactory.getLogger(RequestLoadSessionsUC.class);
@@ -57,39 +55,39 @@ public class RequestLoadSessionsUC {
         return new Request(stationNames, from, to);
     }
 
+    private List<String> sessionFields = List.of("Owner", "StartTime", "EndTime", "Energy_kWh", "Basic_kWh", "Elevated_kWh", "MaxPower_kW", "Mode", "StopReason");
+    private Function<SessionConsumption, List<String>> sessionMapper = consumption -> List.of(
+            consumption.session().userIdentification().name(),
+            formattedDate(consumption.session().chargingStart()),
+            formattedDate(consumption.session().chargingEnd()),
+            String.valueOf(consumption.session().energy().to(KILO(WATT_HOUR)).getValue()),
+            String.valueOf(consumption.basicEnergy().to(KILO(WATT_HOUR)).getValue()),
+            String.valueOf(consumption.elevatedEnergy().to(KILO(WATT_HOUR)).getValue()),
+            String.valueOf(consumption.session().maxPower().to(KILO(WATT)).getValue()),
+            withDefault(consumption.session().mode(), ""),
+            withDefault(consumption.session().stopReason(), "")
+    );
+
+    private List<String> summaryFields = List.of("Owner", "StartTime", "EndTime", "SessionCount", "Energy_kWh", "Basic_kWh", "Elevated_kWh");
+    private Function<SessionSummary, List<String>> summaryMapper = summary -> List.of(
+            summary.userIdentification().toString(),
+            formattedDate(summary.start()),
+            formattedDate(summary.end()),
+            String.valueOf(summary.sessionCount()),
+            String.valueOf(summary.energy().to(KILO(WATT_HOUR)).getValue()),
+            String.valueOf(summary.basicEnergy().to(KILO(WATT_HOUR)).getValue()),
+            String.valueOf(summary.elevatedEnergy().to(KILO(WATT_HOUR)).getValue())
+    );
+
     public void invoke(Request request) {
         String sessionFileName = "Alle-Ladestationen-Ab-%tF".formatted(request.from());
-        List<String> sessionFields = List.of("Owner", "StartTime", "EndTime", "Energy_kWh", "Basic_kWh", "Elevated_kWh", "MaxPower_kW", "Mode", "StopReason");
-        Function<SessionConsumption, List<String>> sessionMapper = consumption -> List.of(
-                consumption.session().userIdentification().name(),
-                consumption.session().chargingStart().format(DateTimeFormatter.ISO_DATE_TIME),
-                consumption.session().chargingEnd().format(DateTimeFormatter.ISO_DATE_TIME),
-                String.valueOf(consumption.session().energy().to(KILO(WATT_HOUR)).getValue()),
-                String.valueOf(consumption.basicEnergy().to(KILO(WATT_HOUR)).getValue()),
-                String.valueOf(consumption.elevatedEnergy().to(KILO(WATT_HOUR)).getValue()),
-                String.valueOf(consumption.session().maxPower().to(KILO(WATT)).getValue()),
-                consumption.session().mode(),
-                consumption.session().stopReason()
-        );
-
-        String summaryFileName = "Zusammenfassung";
-        List<String> summaryFields = List.of("Owner", "StartTime", "EndTime", "SessionCount", "Energy_kWh", "Basic_kWh", "Elevated_kWh");
-        Function<SessionSummary, List<String>> summaryMapper = summary -> List.of(
-                summary.userIdentification().toString(),
-                summary.start().format(DateTimeFormatter.ISO_DATE_TIME),
-                summary.end().format(DateTimeFormatter.ISO_DATE_TIME),
-                String.valueOf(summary.sessionCount()),
-                String.valueOf(summary.energy().to(KILO(WATT_HOUR)).getValue()),
-                String.valueOf(summary.basicEnergy().to(KILO(WATT_HOUR)).getValue()),
-                String.valueOf(summary.elevatedEnergy().to(KILO(WATT_HOUR)).getValue())
-        );
-
+        String summaryFileName = "Zusammenfassung-Ab-%tF".formatted(request.from());
         try(
                 OutputWriter<SessionConsumption> sessionWriter = writerFactory.createWriter(sessionFileName, sessionFields, sessionMapper);
                 OutputWriter<SessionSummary> summaryWriter = writerFactory.createWriter(summaryFileName, summaryFields, summaryMapper);
         ) {
             request.stationNames().stream()
-                    .map(name -> getImportSessions(request, name))
+                    .map(name -> importSessions(request, name))
                     .peek(this::logSessions)
                     .peek(sessionWriter::write)
                     .map(this::sessionSummary)
@@ -99,7 +97,15 @@ public class RequestLoadSessionsUC {
         }
     }
 
-    private List<SessionConsumption> getImportSessions(Request request, String name) {
+    private static String withDefault(String value, String defaultValue) {
+        return value == null ? defaultValue : value;
+    }
+
+    private static String formattedDate(LocalDateTime timestamp) {
+        return timestamp == null ? "" : timestamp.format(DateTimeFormatter.ISO_DATE_TIME);
+    }
+
+    private List<SessionConsumption> importSessions(Request request, String name) {
         try {
             List<LoadSession> sessions = stationAdapter.importSessions(name, request.from(), request.to());
 
@@ -125,8 +131,8 @@ public class RequestLoadSessionsUC {
         consumptions.forEach(consumption ->
             log.info("Charging session at {} from {} to {} with {} (basic {}, elevated {})",
                     consumption.session().userIdentification(),
-                    consumption.session().chargingStart().format(formatter),
-                    consumption.session().chargingEnd().format(formatter),
+                    formattedDate(consumption.session().chargingStart()),
+                    formattedDate(consumption.session().chargingEnd()),
                     format(consumption.session().energy(), KILO(WATT_HOUR)),
                     format(consumption.basicEnergy(), KILO(WATT_HOUR)),
                     format(consumption.elevatedEnergy(), KILO(WATT_HOUR)))
@@ -144,8 +150,8 @@ public class RequestLoadSessionsUC {
     private void logSummaries(SessionSummary summary) {
         log.info("Summary for {} from {} to {} is {} (basic {}, elevated {})",
                 summary.userIdentification(),
-                summary.start().format(formatter),
-                summary.end().format(formatter),
+                formattedDate(summary.start()),
+                formattedDate(summary.end()),
                 format(summary.energy(), KILO(WATT_HOUR)),
                 format(summary.basicEnergy(), KILO(WATT_HOUR)),
                 format(summary.elevatedEnergy(), KILO(WATT_HOUR))

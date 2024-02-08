@@ -36,18 +36,19 @@ public class ConstantTariffSplitter implements TariffSplitter {
 
     @Override
     public SessionConsumption calculateConsumptions(PowerProfile profile) {
-        LocalDateTime start = profile.session().chargingStart();
-        LocalDateTime end = profile.session().chargingEnd();
-        List<LocalDateTime> tariffChangeTimes = tariff.findTariffChangeTimes(start, end);
+        LocalDateTime sessionStart = profile.session().chargingStart();
+        LocalDateTime sessionEnd = profile.session().chargingEnd();
+        if (sessionEnd == null) sessionEnd = LocalDateTime.now();
+        List<LocalDateTime> tariffChangeTimes = tariff.findTariffChangeTimes(sessionStart, sessionEnd);
 
         ArrayList<EnergyConsumption> consumptions = new ArrayList<>();
-        Iterator<PowerMeasure> profileIterator = complementProfile(profile.measurements(), start, end).iterator();
-        LocalDateTime startTime = start;
+        Iterator<PowerMeasure> profileIterator = complementProfile(profile.measurements(), sessionStart, sessionEnd).iterator();
+        LocalDateTime startTime = sessionStart;
         PowerMeasure nextMeasure = profileIterator.next();
-        while (nextMeasure.time().isBefore(end)) {
+        while (nextMeasure.time().isBefore(sessionEnd)) {
             PowerMeasure lastMeasure = nextMeasure;
             nextMeasure = profileIterator.next();
-            LocalDateTime endTime = earliest(nextMeasure.time(), end);
+            LocalDateTime endTime = earliest(nextMeasure.time(), sessionEnd);
             Quantity<Energy> energy = calculateEnergy(lastMeasure, nextMeasure, startTime, endTime);
             consumptions.add(new EnergyConsumption(startTime, tariff.validAt(startTime), energy));
             startTime = endTime;

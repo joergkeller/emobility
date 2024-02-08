@@ -54,8 +54,12 @@ public class EnergyUtil {
      * Assuming t1 to be 0: v = v1 + t(v2-v1)/t2
      */
     public static <U extends Quantity<U>> Quantity<U> linearInterpolation(Quantity<U> first, Quantity<U> second, long timeBetween, long timeToInterpolation) {
-        final Quantity<U> delta = second.subtract(first);
-        return delta.multiply(timeToInterpolation).divide(timeBetween).add(first);
+        if (timeBetween == 0L) {
+            return first;
+        } else {
+            final Quantity<U> delta = second.subtract(first);
+            return delta.multiply(timeToInterpolation).divide(timeBetween).add(first);
+        }
     }
 
     public static String format(Quantity<Energy> value, Unit<Energy> unit) {
