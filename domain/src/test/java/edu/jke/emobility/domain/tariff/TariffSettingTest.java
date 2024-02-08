@@ -58,24 +58,25 @@ public class TariffSettingTest {
     @Test
     void findTariffChangeTimes_elevatedToBaseToElevated() {
         TariffSetting tariff = new TariffSetting();
-        LocalDateTime from = LocalDateTime.of(2022, 10, 7, 12, 00); // friday 12:00
+        LocalDateTime from = LocalDateTime.of(2022, 10, 6, 12, 00); // thursday 12:00
         LocalDateTime to = LocalDateTime.of(2022, 10, 8, 12, 00); // saturday 12:00
         List<LocalDateTime> changeTimes = tariff.findTariffChangeTimes(from, to);
-        assertThat(changeTimes.size()).isEqualTo(2);
+        assertThat(changeTimes.size()).isEqualTo(3);
         assertThat(changeTimes.get(0).getHour()).isEqualTo(20);
         assertThat(changeTimes.get(1).getHour()).isEqualTo(7);
+        assertThat(changeTimes.get(2).getHour()).isEqualTo(20);
     }
 
     @Test
     void findTariffChangeTimes_multipleDays() {
         TariffSetting tariff = new TariffSetting();
-        LocalDateTime from = LocalDateTime.of(2022, 10, 7, 12, 00); // friday 12:00
+        LocalDateTime from = LocalDateTime.of(2022, 10, 6, 12, 00); // thursday 12:00
         LocalDateTime to = LocalDateTime.of(2022, 10, 10, 22, 00); // monday 22:00
         List<LocalDateTime> changeTimes = tariff.findTariffChangeTimes(from, to);
         assertThat(changeTimes.size()).isEqualTo(5);
         assertThat(changeTimes.get(0).getHour()).isEqualTo(20);
         assertThat(changeTimes.get(1).getHour()).isEqualTo(7);
-        assertThat(changeTimes.get(2).getHour()).isEqualTo(13);
+        assertThat(changeTimes.get(2).getHour()).isEqualTo(20);
         assertThat(changeTimes.get(3).getHour()).isEqualTo(7);
         assertThat(changeTimes.get(4).getHour()).isEqualTo(20);
     }
