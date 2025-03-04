@@ -2,4 +2,5 @@ rootProject.name = 'emobility'
 include 'domain'
 include 'usecase'
 include 'adapter'
+include 'application'
 
