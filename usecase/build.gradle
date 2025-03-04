@@ -2,8 +2,8 @@ plugins {
     id 'java'
 }
 
-group 'edu.jke.emobility'
-version '1.0-SNAPSHOT'
+group = 'edu.jke.emobility'
+version = '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
@@ -19,8 +19,8 @@ dependencies {
     implementation 'ch.qos.logback:logback-core:1.4.7'
 
     testImplementation 'org.hamcrest:hamcrest:2.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.12.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 test {
