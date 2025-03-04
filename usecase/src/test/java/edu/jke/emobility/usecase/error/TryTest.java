@@ -4,15 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-import java.util.function.Supplier;
-import java.util.stream.StreamSupport;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TryTest {
@@ -23,45 +15,45 @@ public class TryTest {
         @Test
         void createSuccess() {
             Try<String,Throwable> success = Try.success("done");
-            assertThat(success.isSuccess(), equalTo(true));
-            assertThat(success.isFailure(), equalTo(false));
+            assertThat(success.isSuccess()).isTrue();
+            assertThat(success.isFailure()).isFalse();
             success
-                    .onSuccess(val -> assertThat(val, equalTo("done")))
-                    .onFailure(th -> Assertions.fail()); // don't execute
-            assertThat(success.get(), equalTo("done"));
-            assertThat(success.orElse("default"), equalTo("done"));
+                    .onSuccess(val -> assertThat(val).isEqualTo("done"))
+                    .onFailure(_ -> Assertions.fail()); // don't execute
+            assertThat(success.get()).isEqualTo("done");
+            assertThat(success.orElse("default")).isEqualTo("done");
         }
 
         @Test
         void createSuccessWithErrorMapper() {
             Try<String,String> success = Try.success("done", Throwable::getMessage);
-            assertThat(success.isSuccess(), equalTo(true));
-            assertThat(success.isFailure(), equalTo(false));
+            assertThat(success.isSuccess()).isTrue();
+            assertThat(success.isFailure()).isFalse();
             success
-                    .onSuccess(val -> assertThat(val, equalTo("done")))
-                    .onFailure(th -> Assertions.fail()); // don't execute
+                    .onSuccess(val -> assertThat(val).isEqualTo("done"))
+                    .onFailure(_ -> Assertions.fail()); // don't execute
         }
 
         @Test
         void successfulOperation() {
             Try<String,Throwable> success = Try.failable(() -> "finally done");
-            assertThat(success.isSuccess(), equalTo(true));
-            success.onSuccess(val -> assertThat(val, equalTo("finally done")));
+            assertThat(success.isSuccess()).isTrue();
+            success.onSuccess(val -> assertThat(val).isEqualTo("finally done"));
         }
 
         @Test
         void successfulOperationWithErrorMapper() {
             Try<String,String> success = Try.failable(() -> "finally done", Throwable::getMessage);
-            assertThat(success.isSuccess(), equalTo(true));
-            success.onSuccess(val -> assertThat(val, equalTo("finally done")));
+            assertThat(success.isSuccess()).isTrue();
+            success.onSuccess(val -> assertThat(val).isEqualTo("finally done"));
         }
 
         @Test
         void mappingSuccess() {
             Try<String,String> origin = Try.success("42", Throwable::getMessage);
             Try<Integer,String> result = origin.map(Integer::parseInt);
-            assertThat(result.isSuccess(), equalTo(true));
-            result.onSuccess(val -> assertThat(val, equalTo(42)));
+            assertThat(result.isSuccess()).isTrue();
+            result.onSuccess(val -> assertThat(val).isEqualTo(42));
         }
 
         private Try<Integer,String> parsing(String value) {
@@ -72,8 +64,8 @@ public class TryTest {
         void flatMappingSuccess() {
             Try<String,String> origin = Try.success("42", Throwable::getMessage);
             Try<Integer,String> result = origin.flatMap(this::parsing);
-            assertThat(result.isSuccess(), equalTo(true));
-            result.onSuccess(val -> assertThat(val, equalTo(42)));
+            assertThat(result.isSuccess()).isTrue();
+            result.onSuccess(val -> assertThat(val).isEqualTo(42));
         }
 
     }
@@ -84,17 +76,17 @@ public class TryTest {
         @Test
         void createFailure() {
             Try<String,Throwable> fail = Try.failure(new RuntimeException("fail"));
-            assertThat(fail.isSuccess(), equalTo(false));
-            assertThat(fail.isFailure(), equalTo(true));
+            assertThat(fail.isSuccess()).isFalse();
+            assertThat(fail.isFailure()).isTrue();
             fail
-                .onFailure(th -> assertThat(th.getMessage(), equalTo("fail")))
-                .onSuccess(val -> Assertions.fail()); // don't execute
-            RuntimeException thrown = assertThrows(RuntimeException.class, () -> fail.get());
-            assertThat(thrown.getMessage(), equalTo("fail"));
-            assertThat(fail.orElse("default"), equalTo("default"));
+                .onFailure(th -> assertThat(th.getMessage()).isEqualTo("fail"))
+                .onSuccess(_ -> Assertions.fail()); // don't execute
+            RuntimeException thrown = assertThrows(RuntimeException.class, fail::get);
+            assertThat(thrown.getMessage()).isEqualTo("fail");
+            assertThat(fail.orElse("default")).isEqualTo("default");
         }
 
-        class CheckedException extends Exception {
+        static class CheckedException extends Exception {
             CheckedException(String message) { super(message); }
         }
 
@@ -105,25 +97,25 @@ public class TryTest {
         @Test
         void failedOperationWithMapping() {
             Try<String, String> fail = Try.failable(this::throwing, Throwable::getMessage);
-            RuntimeException thrown = assertThrows(RuntimeException.class, () -> fail.get());
-            assertThat(thrown.getMessage(), equalTo("nope"));
+            RuntimeException thrown = assertThrows(RuntimeException.class, fail::get);
+            assertThat(thrown.getMessage()).isEqualTo("nope");
         }
 
         @Test
         void failedOperation() {
             Try<?,Throwable> fail = Try.failable(this::throwing, ex -> ex);
-            assertThat(fail.isFailure(), equalTo(true));
-            fail.onFailure(th -> assertThat(th.getMessage(), equalTo("nope")));
-            RuntimeException thrown = assertThrows(RuntimeException.class, () -> fail.get());
-            assertThat(thrown.getCause().getMessage(), equalTo("nope"));
+            assertThat(fail.isFailure()).isTrue();
+            fail.onFailure(th -> assertThat(th.getMessage()).isEqualTo("nope"));
+            RuntimeException thrown = assertThrows(RuntimeException.class, fail::get);
+            assertThat(thrown.getCause().getMessage()).isEqualTo("nope");
         }
 
         @Test
         void mappingFailure() {
             Try<String,Throwable> origin = Try.failure(new RuntimeException("fail"));
             Try<Integer,Throwable> result = origin.map(Integer::parseInt);
-            assertThat(result.isFailure(), equalTo(true));
-            result.onFailure(th -> assertThat(th.getMessage(), equalTo("fail")));
+            assertThat(result.isFailure()).isTrue();
+            result.onFailure(th -> assertThat(th.getMessage()).isEqualTo("fail"));
         }
 
         private Try<Integer,Throwable> parsing(String value) {
@@ -134,8 +126,8 @@ public class TryTest {
         void flatMappingFailure() {
             Try<String,Throwable> origin = Try.failure(new RuntimeException("fail"));
             Try<Integer,Throwable> result = origin.flatMap(this::parsing);
-            assertThat(result.isFailure(), equalTo(true));
-            result.onFailure(th -> assertThat(th.getMessage(), equalTo("fail")));
+            assertThat(result.isFailure()).isTrue();
+            result.onFailure(th -> assertThat(th.getMessage()).isEqualTo("fail"));
         }
 
         private Integer failingTransformation(String value) {
@@ -146,8 +138,8 @@ public class TryTest {
         void mappingFails() {
             Try<String,Throwable> origin = Try.success("42", ex -> ex);
             Try<Integer,Throwable> result = origin.map(this::failingTransformation);
-            assertThat(result.isFailure(), equalTo(true));
-            result.onFailure(th -> assertThat(th.getMessage(), equalTo("Cannot map 42")));
+            assertThat(result.isFailure()).isTrue();
+            result.onFailure(th -> assertThat(th.getMessage()).isEqualTo("Cannot map 42"));
         }
 
         private Try<Integer,Throwable> failingFlatTransformation(String value) {
@@ -158,8 +150,8 @@ public class TryTest {
         void flatMappingFails() {
             Try<String,Throwable> origin = Try.success("42", ex -> ex);
             Try<Integer,Throwable> result = origin.flatMap(this::failingFlatTransformation);
-            assertThat(result.isFailure(), equalTo(true));
-            result.onFailure(th -> assertThat(th.getMessage(), equalTo("Cannot map 42")));
+            assertThat(result.isFailure()).isTrue();
+            result.onFailure(th -> assertThat(th.getMessage()).isEqualTo("Cannot map 42"));
         }
     }
 

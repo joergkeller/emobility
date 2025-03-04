@@ -6,8 +6,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 public class TryAggregationTest {
 
@@ -28,10 +28,10 @@ public class TryAggregationTest {
                 List::of,
                 first, second, third);
 
-        assertThat(request.isSuccess(), equalTo(true));
-        assertThat(request.get().first, equalTo("Hello"));
-        assertThat(request.get().second, equalTo(42));
-        assertThat(request.get().third.toString().length(), equalTo(36));
+        assertThat(request.isSuccess()).isTrue();
+        assertThat(request.get().first).isEqualTo("Hello");
+        assertThat(request.get().second).isEqualTo(42);
+        assertThat(request.get().third.toString().length()).isEqualTo(36);
     }
 
     @Test
@@ -45,8 +45,8 @@ public class TryAggregationTest {
                 List::of,
                 first, second, third);
 
-        assertThat(request.isFailure(), equalTo(true));
-        request.onFailure(errors -> assertThat(errors.size(), equalTo(1)));
+        assertThat(request.isFailure()).isTrue();
+        request.onFailure(errors -> assertThat(errors.size()).isEqualTo(1));
     }
 
 }
