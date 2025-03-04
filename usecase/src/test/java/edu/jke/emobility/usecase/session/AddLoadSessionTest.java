@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import javax.measure.Quantity;
 import javax.measure.quantity.Energy;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -17,7 +16,7 @@ public class AddLoadSessionTest {
     @Test
     void addLoadSession() {
         LocalDateTime start = LocalDateTime.now();
-        LocalDateTime end = LocalDateTime.now().plus(1, ChronoUnit.HOURS);
+        LocalDateTime end = LocalDateTime.now().plusHours(1);
         UserIdentification userIdentification = new UserIdentification("1");
         Quantity<Energy> energy = EnergyUtil.Wh(1517);
         AddLoadSessionUseCase.Request request = new AddLoadSessionUseCase.Request(start, end, userIdentification, energy);

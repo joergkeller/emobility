@@ -1,6 +1,8 @@
 package edu.jke.emobility.usecase.error;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -10,11 +12,9 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Covers the result of a potentially failing operation.
- *
  * A try object contains either the successful result of an operation or its error object, e.g. exception.
  * Instead of throwing the execption and thus separate the path of successful and failing results, the
  * Try object covers both cases.
- *
  * Example:
  * <pre>
  *      Try<String,Throwable> result = Try.failable(this::operation);
