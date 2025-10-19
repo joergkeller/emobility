@@ -123,6 +123,7 @@ public class RequestLoadSessionsUC {
                     .filter(session -> session.isValid())
                     .map(session -> stationAdapter.importProfile(name, session))
                     .map(tariffSplitter::calculateConsumptions)
+                    .map(tariffSplitter::scaleConsumptionToSession)
                     .toList();
 
             consumption.stream()

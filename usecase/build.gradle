@@ -13,13 +13,13 @@ dependencies {
     implementation project(':domain')
 
     implementation 'javax.measure:unit-api:2.2'
-    implementation 'tech.units:indriya:2.2.2'
+    implementation 'tech.units:indriya:2.2.3'
     implementation 'org.slf4j:slf4j-api:2.0.17'
-    implementation 'ch.qos.logback:logback-classic:1.5.17'
-    implementation 'ch.qos.logback:logback-core:1.5.17'
+    implementation 'ch.qos.logback:logback-classic:1.5.19'
+    implementation 'ch.qos.logback:logback-core:1.5.19'
 
-    testImplementation 'org.assertj:assertj-core:3.27.3'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.12.0'
+    testImplementation 'org.assertj:assertj-core:3.27.6'
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.0.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

@@ -62,16 +62,33 @@ public class ConstantTariffSplitter implements TariffSplitter {
                 .to(WATT_HOUR);
 
         Quantity<Energy> sessionEnergy = profile.session().energy().to(WATT_HOUR);
+        Quantity<Energy> delta = totalEnergy.subtract(sessionEnergy);
+        log.info("Approximation of power consumption with error {}", EnergyUtil.format(delta, WATT_HOUR));
+
+        return new SessionConsumption(
+                profile.session(),
+                tariffGroups.getOrDefault(TariffSetting.Tariff.BASIC, ZERO_ENERGY),
+                tariffGroups.getOrDefault(TariffSetting.Tariff.ELEVATED, ZERO_ENERGY),
+                consumptions);
+    }
+
+    @Override
+    public SessionConsumption scaleConsumptionToSession(SessionConsumption consumption) {
+        Quantity<Energy> totalEnergy = consumption.basicEnergy()
+                .add(consumption.elevatedEnergy())
+                .to(WATT_HOUR);
+
+        Quantity<Energy> sessionEnergy = consumption.session().energy().to(WATT_HOUR);
         Number scalingFactor = Integer.valueOf(1);
         if (totalEnergy.getValue().doubleValue() > 0.0) scalingFactor = sessionEnergy.divide(totalEnergy).getValue();
         Quantity<Energy> delta = totalEnergy.subtract(sessionEnergy);
         log.info("Approximation of power consumption with error {}", EnergyUtil.format(delta, WATT_HOUR));
 
         return new SessionConsumption(
-                profile.session(),
-                tariffGroups.getOrDefault(TariffSetting.Tariff.BASIC, ZERO_ENERGY).multiply(scalingFactor),
-                tariffGroups.getOrDefault(TariffSetting.Tariff.ELEVATED, ZERO_ENERGY).multiply(scalingFactor),
-                EnergyConsumption.multiply(consumptions, scalingFactor));
+                consumption.session(),
+                consumption.basicEnergy().multiply(scalingFactor),
+                consumption.elevatedEnergy().multiply(scalingFactor),
+                EnergyConsumption.multiply(consumption.detailConsumptions(), scalingFactor));
     }
 
     Quantity<Energy> calculateEnergy(PowerMeasure first, PowerMeasure second, LocalDateTime startTime, LocalDateTime endTime) {

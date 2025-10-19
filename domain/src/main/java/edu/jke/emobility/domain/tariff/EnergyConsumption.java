@@ -31,7 +31,7 @@ public record EnergyConsumption(
     /**
      * Scale the energy consumption by a factor to adjust for errors.
      */
-    public static List<EnergyConsumption> multiply(ArrayList<EnergyConsumption> consumptions, Number scalingFactor) {
+    public static List<EnergyConsumption> multiply(List<EnergyConsumption> consumptions, Number scalingFactor) {
         return consumptions.stream()
                 .map(c -> new EnergyConsumption(c.startTime, c.endTime, c.tariff, c.energy.multiply(scalingFactor)))
                 .toList();

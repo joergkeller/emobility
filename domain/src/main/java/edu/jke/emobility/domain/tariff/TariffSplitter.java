@@ -15,7 +15,10 @@ import java.util.List;
  * measurement is assumed to be exact.
  */
 public interface TariffSplitter {
-    abstract SessionConsumption calculateConsumptions(PowerProfile powerProfile);
+
+    SessionConsumption calculateConsumptions(PowerProfile powerProfile);
+
+    SessionConsumption scaleConsumptionToSession(SessionConsumption consumption);
 
     default List<PowerMeasure> complementProfile(List<PowerMeasure> powerProfile, LocalDateTime startTime, LocalDateTime endTime) {
         if (powerProfile.isEmpty()) throw new ConsistencyException("Missing power profile");
