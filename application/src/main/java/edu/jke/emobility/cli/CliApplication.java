@@ -51,7 +51,7 @@ public class CliApplication {
         LocalDateTime to = LocalDateTime.now();
 
         RequestLoadSessionsUC.Request request = requestLoadSessionsUC.validate(stationNames, from, to);
-        requestLoadSessionsUC.invoke(request);
+        requestLoadSessionsUC.loadSessions(request);
     }
 
 }

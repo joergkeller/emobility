@@ -45,7 +45,7 @@ public class SpringConsoleApplication implements CommandLineRunner {
     public void run(String... args) throws Exception {
         log.info("Loading charger sessions from {}", chargerNames);
         RequestLoadSessionsUC.Request request = loadSessions.validate(chargerNames, startTimestamp, endTimestamp);
-        loadSessions.invoke(request);
+        loadSessions.loadSessions(request);
     }
 
 }

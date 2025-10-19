@@ -211,7 +211,7 @@ public class StationAdapter implements StationEndpoint {
         String json = loadSessions(stationName, start, end);
         return parseSessionResponse(json).stream()
                 .map(this::asLoadSession)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     List<ProfileEntity> parseProfileResponse(String json) {
@@ -241,7 +241,7 @@ public class StationAdapter implements StationEndpoint {
         String json = loadProfile(stationName, start, end);
         List<PowerMeasure> measures = parseProfileResponse(json).stream()
                 .map(this::asPowerMeasure)
-                .collect(Collectors.toList());
+                .toList();
         return new PowerProfile(session, measures);
     }
 

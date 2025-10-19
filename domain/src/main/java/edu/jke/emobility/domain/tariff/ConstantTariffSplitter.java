@@ -50,7 +50,7 @@ public class ConstantTariffSplitter implements TariffSplitter {
             nextMeasure = profileIterator.next();
             LocalDateTime endTime = earliest(nextMeasure.time(), sessionEnd);
             Quantity<Energy> energy = calculateEnergy(lastMeasure, nextMeasure, startTime, endTime);
-            consumptions.add(new EnergyConsumption(startTime, tariff.validAt(startTime), energy));
+            consumptions.add(new EnergyConsumption(startTime, endTime, tariff.validAt(startTime), energy));
             startTime = endTime;
         }
 
@@ -71,18 +71,7 @@ public class ConstantTariffSplitter implements TariffSplitter {
                 profile.session(),
                 tariffGroups.getOrDefault(TariffSetting.Tariff.BASIC, ZERO_ENERGY).multiply(scalingFactor),
                 tariffGroups.getOrDefault(TariffSetting.Tariff.ELEVATED, ZERO_ENERGY).multiply(scalingFactor),
-                consumptions);
-    }
-
-    private Quantity<Energy> combineConsumptions() {
-        return null;
-    }
-
-    private EnergyConsumption summmarizeConsumptions(Map.Entry<TariffSetting.Tariff, List<EnergyConsumption>> entry) {
-        Quantity<Energy> totalEnergy = entry.getValue().stream()
-                .map(EnergyConsumption::energy)
-                .reduce(ZERO_ENERGY, Quantity::add);
-        return new EnergyConsumption(entry.getValue().get(0).time(), entry.getKey(), totalEnergy);
+                EnergyConsumption.multiply(consumptions, scalingFactor));
     }
 
     Quantity<Energy> calculateEnergy(PowerMeasure first, PowerMeasure second, LocalDateTime startTime, LocalDateTime endTime) {

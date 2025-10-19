@@ -3,8 +3,12 @@ package edu.jke.emobility.usecase.session;
 import edu.jke.emobility.domain.error.ApplicationException;
 import edu.jke.emobility.domain.session.LoadSession;
 import edu.jke.emobility.domain.session.SessionSummary;
+import edu.jke.emobility.domain.tariff.EnergyConsumption;
 import edu.jke.emobility.domain.tariff.SessionConsumption;
+import edu.jke.emobility.domain.tariff.TariffSetting;
 import edu.jke.emobility.domain.tariff.TariffSplitter;
+import edu.jke.emobility.domain.util.DateUtil;
+import edu.jke.emobility.domain.util.EnergyUtil;
 import edu.jke.emobility.domain.value.CustomUnits;
 import edu.jke.emobility.usecase.error.ServiceException;
 import org.slf4j.Logger;
@@ -12,11 +16,9 @@ import org.slf4j.LoggerFactory;
 
 import java.net.SocketTimeoutException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static edu.jke.emobility.domain.util.EnergyUtil.format;
 import static edu.jke.emobility.domain.value.CustomUnits.WATT_HOUR;
@@ -55,15 +57,24 @@ public class RequestLoadSessionsUC {
         return new Request(stationNames, from, to);
     }
 
+    private List<String> profileFields = List.of("Start", "End", "Messwert", "Einheit", "Tarifart");
+    private Function<EnergyConsumption, List<String>> profileMapper = consumption -> List.of(
+            DateUtil.format(consumption.startTime()),
+            DateUtil.format(consumption.endTime()),
+            EnergyUtil.formatNoUnit(consumption.energy(), KILO(WATT_HOUR)),
+            "KWH",
+            consumption.tariff() == TariffSetting.Tariff.BASIC ? "NT" : "HT"
+    );
+
     private List<String> sessionFields = List.of("Owner", "StartTime", "EndTime", "Energy_kWh", "Basic_kWh", "Elevated_kWh", "MaxPower_kW", "Mode", "StopReason");
     private Function<SessionConsumption, List<String>> sessionMapper = consumption -> List.of(
             consumption.session().userIdentification().name(),
-            formattedDate(consumption.session().chargingStart()),
-            formattedDate(consumption.session().chargingEnd()),
-            String.valueOf(consumption.session().energy().to(KILO(WATT_HOUR)).getValue()),
-            String.valueOf(consumption.basicEnergy().to(KILO(WATT_HOUR)).getValue()),
-            String.valueOf(consumption.elevatedEnergy().to(KILO(WATT_HOUR)).getValue()),
-            String.valueOf(consumption.session().maxPower().to(KILO(WATT)).getValue()),
+            DateUtil.format(consumption.session().chargingStart()),
+            DateUtil.format(consumption.session().chargingEnd()),
+            EnergyUtil.formatNoUnit(consumption.session().energy(), KILO(WATT_HOUR)),
+            EnergyUtil.formatNoUnit(consumption.basicEnergy(), KILO(WATT_HOUR)),
+            EnergyUtil.formatNoUnit(consumption.elevatedEnergy(), KILO(WATT_HOUR)),
+            EnergyUtil.formatNoUnit(consumption.session().maxPower(), KILO(WATT)),
             withDefault(consumption.session().mode(), ""),
             withDefault(consumption.session().stopReason(), "")
     );
@@ -71,20 +82,20 @@ public class RequestLoadSessionsUC {
     private List<String> summaryFields = List.of("Owner", "StartTime", "EndTime", "SessionCount", "Energy_kWh", "Basic_kWh", "Elevated_kWh");
     private Function<SessionSummary, List<String>> summaryMapper = summary -> List.of(
             summary.userIdentification().toString(),
-            formattedDate(summary.start()),
-            formattedDate(summary.end()),
+            DateUtil.format(summary.start()),
+            DateUtil.format(summary.end()),
             String.valueOf(summary.sessionCount()),
-            String.valueOf(summary.energy().to(KILO(WATT_HOUR)).getValue()),
-            String.valueOf(summary.basicEnergy().to(KILO(WATT_HOUR)).getValue()),
-            String.valueOf(summary.elevatedEnergy().to(KILO(WATT_HOUR)).getValue())
+            EnergyUtil.formatNoUnit(summary.energy(), KILO(WATT_HOUR)),
+            EnergyUtil.formatNoUnit(summary.basicEnergy(), KILO(WATT_HOUR)),
+            EnergyUtil.formatNoUnit(summary.elevatedEnergy(), KILO(WATT_HOUR))
     );
 
-    public void invoke(Request request) {
+    public void loadSessions(Request request) {
         String sessionFileName = "Alle-Ladestationen-Ab-%tF".formatted(request.from());
         String summaryFileName = "Zusammenfassung-Ab-%tF".formatted(request.from());
         try(
-                OutputWriter<SessionConsumption> sessionWriter = writerFactory.createWriter(sessionFileName, sessionFields, sessionMapper);
-                OutputWriter<SessionSummary> summaryWriter = writerFactory.createWriter(summaryFileName, summaryFields, summaryMapper);
+            OutputWriter<SessionConsumption> sessionWriter = writerFactory.createWriter(sessionFileName, sessionFields, sessionMapper);
+            OutputWriter<SessionSummary> summaryWriter = writerFactory.createWriter(summaryFileName, summaryFields, summaryMapper);
         ) {
             request.stationNames().stream()
                     .map(name -> importSessions(request, name))
@@ -101,19 +112,25 @@ public class RequestLoadSessionsUC {
         return value == null ? defaultValue : value;
     }
 
-    private static String formattedDate(LocalDateTime timestamp) {
-        return timestamp == null ? "" : timestamp.format(DateTimeFormatter.ISO_DATE_TIME);
-    }
-
     private List<SessionConsumption> importSessions(Request request, String name) {
-        try {
+        String profileFileName = "Ladestation-%s-Ab-%tF".formatted(name, request.from());
+        try(
+            OutputWriter<EnergyConsumption> profileWriter = writerFactory.createWriter(profileFileName, profileFields, profileMapper);
+        ) {
             List<LoadSession> sessions = stationAdapter.importSessions(name, request.from(), request.to());
 
-            return sessions.stream()
+            List<SessionConsumption> consumption = sessions.stream()
                     .filter(session -> session.isValid())
                     .map(session -> stationAdapter.importProfile(name, session))
                     .map(tariffSplitter::calculateConsumptions)
-                    .collect(Collectors.toList());
+                    .toList();
+
+            consumption.stream()
+                    .sorted(SessionConsumption.BY_START)
+                    .flatMap(session -> session.convertInterval(15).stream())
+                    .forEach(profileWriter::write);
+
+            return consumption;
         } catch(ServiceException exception) {
             if (exception.getCause() instanceof SocketTimeoutException) {
                 log.warn("Station {} is not available", name);
@@ -127,12 +144,16 @@ public class RequestLoadSessionsUC {
 
     }
 
+    private int compareByStartTime(SessionConsumption first, SessionConsumption second) {
+        return first.session().chargingStart().compareTo(second.session().chargingStart());
+    }
+
     private void logSessions(List<SessionConsumption> consumptions) {
         consumptions.forEach(consumption ->
             log.info("Charging session at {} from {} to {} with {} (basic {}, elevated {})",
                     consumption.session().userIdentification(),
-                    formattedDate(consumption.session().chargingStart()),
-                    formattedDate(consumption.session().chargingEnd()),
+                    DateUtil.format(consumption.session().chargingStart()),
+                    DateUtil.format(consumption.session().chargingEnd()),
                     format(consumption.session().energy(), KILO(WATT_HOUR)),
                     format(consumption.basicEnergy(), KILO(WATT_HOUR)),
                     format(consumption.elevatedEnergy(), KILO(WATT_HOUR)))
@@ -150,8 +171,8 @@ public class RequestLoadSessionsUC {
     private void logSummaries(SessionSummary summary) {
         log.info("Summary for {} from {} to {} is {} (basic {}, elevated {})",
                 summary.userIdentification(),
-                formattedDate(summary.start()),
-                formattedDate(summary.end()),
+                DateUtil.format(summary.start()),
+                DateUtil.format(summary.end()),
                 format(summary.energy(), KILO(WATT_HOUR)),
                 format(summary.basicEnergy(), KILO(WATT_HOUR)),
                 format(summary.elevatedEnergy(), KILO(WATT_HOUR))

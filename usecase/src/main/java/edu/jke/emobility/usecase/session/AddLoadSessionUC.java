@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter;
 
 import static edu.jke.emobility.domain.value.CustomUnits.ZERO_POWER;
 
-public class AddLoadSessionUseCase {
+public class AddLoadSessionUC {
     public record Request(LocalDateTime start, LocalDateTime end, UserIdentification userIdentification, Quantity<Energy> energy) {}
 
     public static Request validate(String start, String end, String chargerId, String energy) {

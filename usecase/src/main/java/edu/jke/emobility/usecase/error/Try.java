@@ -88,7 +88,7 @@ public abstract class Try<V,E> {
             List<E> allErrors = Arrays.stream(components)
                     .filter(Try::isFailure)
                     .map(Try::error)
-                    .collect(Collectors.toList());
+                    .toList();
             return Try.failure(allErrors);
         }
     }

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class AddLoadSessionTest {
+public class AddLoadSessionUCTest {
 
     @Test
     void addLoadSession() {
@@ -19,9 +19,9 @@ public class AddLoadSessionTest {
         LocalDateTime end = LocalDateTime.now().plusHours(1);
         UserIdentification userIdentification = new UserIdentification("1");
         Quantity<Energy> energy = EnergyUtil.Wh(1517);
-        AddLoadSessionUseCase.Request request = new AddLoadSessionUseCase.Request(start, end, userIdentification, energy);
+        AddLoadSessionUC.Request request = new AddLoadSessionUC.Request(start, end, userIdentification, energy);
 
-        AddLoadSessionUseCase addLoadSession = new AddLoadSessionUseCase();
+        AddLoadSessionUC addLoadSession = new AddLoadSessionUC();
         LoadSessionId sessionId = addLoadSession.invoke(request);
 
         assertNotNull(sessionId);

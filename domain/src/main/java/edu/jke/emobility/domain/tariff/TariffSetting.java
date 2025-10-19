@@ -1,12 +1,13 @@
 package edu.jke.emobility.domain.tariff;
 
+import edu.jke.emobility.domain.util.DateUtil;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TariffSetting {
@@ -25,11 +26,9 @@ public class TariffSetting {
         }
 
         public boolean isElevated(LocalTime instant) {
-            if (from == null && to == null) return false;
-            else if (from == null) return instant.isBefore(to);
-            else if (to == null) return from.isBefore(instant);
-            else return from.isBefore(instant) && instant.isBefore(to);
+            return DateUtil.isInRange(instant, from, to);
         }
+
     }
 
     private final Map<DayOfWeek, ElevationTime> elevationTimes = Map.of(
@@ -46,7 +45,7 @@ public class TariffSetting {
         return from.toLocalDate().datesUntil(to.toLocalDate().plusDays(1))
                 .flatMap(this::elevationTimesForDate)
                 .filter(changeTime -> isBetween(changeTime, from, to))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private Stream<LocalDateTime> elevationTimesForDate(LocalDate date) {
