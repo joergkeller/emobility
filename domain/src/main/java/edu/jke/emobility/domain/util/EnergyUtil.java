@@ -63,11 +63,11 @@ public class EnergyUtil {
     }
 
     public static <T extends Quantity<T>> String format(Quantity<T> value, Unit<T> unit) {
-        return String.format("%,.3f %s", value.to(unit).getValue().doubleValue(), unit.toString());
+        return String.format("%.3f %s", value.to(unit).getValue().doubleValue(), unit.toString());
     }
 
     public static <T extends Quantity<T>> String formatNoUnit(Quantity<T> value, Unit<T> unit) {
-        String rounded = String.format("%,.6f", value.to(unit).getValue().doubleValue());
+        String rounded = String.format("%.6f", value.to(unit).getValue().doubleValue());
         return rounded.equals("0.000") ? "0" : rounded;
     }
 }
