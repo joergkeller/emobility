@@ -12,7 +12,7 @@ import javax.measure.Quantity;
 import javax.measure.quantity.Energy;
 import javax.measure.quantity.Power;
 import javax.measure.quantity.Time;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -39,19 +39,19 @@ public class ConstantTariffSplitter implements TariffSplitter {
      */
     @Override
     public SessionConsumption calculateConsumptions(PowerProfile profile) {
-        LocalDateTime sessionStart = profile.session().chargingStart();
-        LocalDateTime sessionEnd = profile.session().chargingEnd();
-        if (sessionEnd == null) sessionEnd = LocalDateTime.now();
-        List<LocalDateTime> tariffChangeTimes = tariff.findTariffChangeTimes(sessionStart, sessionEnd);
+        ZonedDateTime sessionStart = profile.session().chargingStart();
+        ZonedDateTime sessionEnd = profile.session().chargingEnd();
+        if (sessionEnd == null) sessionEnd = ZonedDateTime.now();
+        List<ZonedDateTime> tariffChangeTimes = tariff.findTariffChangeTimes(sessionStart, sessionEnd);
 
         ArrayList<EnergyConsumption> consumptions = new ArrayList<>();
         Iterator<PowerMeasure> profileIterator = complementProfile(profile.measurements(), sessionStart, sessionEnd).iterator();
-        LocalDateTime startTime = sessionStart;
+        ZonedDateTime startTime = sessionStart;
         PowerMeasure nextMeasure = profileIterator.next();
         while (nextMeasure.time().isBefore(sessionEnd)) {
             PowerMeasure lastMeasure = nextMeasure;
             nextMeasure = profileIterator.next();
-            LocalDateTime endTime = earliest(nextMeasure.time(), sessionEnd);
+            ZonedDateTime endTime = earliest(nextMeasure.time(), sessionEnd);
             Quantity<Energy> energy = calculateEnergy(lastMeasure, nextMeasure, startTime, endTime);
             consumptions.add(new EnergyConsumption(startTime, endTime, tariff.validAt(startTime), energy));
             startTime = endTime;
@@ -99,7 +99,7 @@ public class ConstantTariffSplitter implements TariffSplitter {
     /**
      * Calculate the energy consumed between two power measurements over a given time interval.
      */
-    Quantity<Energy> calculateEnergy(PowerMeasure first, PowerMeasure second, LocalDateTime startTime, LocalDateTime endTime) {
+    Quantity<Energy> calculateEnergy(PowerMeasure first, PowerMeasure second, ZonedDateTime startTime, ZonedDateTime endTime) {
         if (first.time().isAfter(second.time())) throw new ConsistencyException("Power profiling is not in order (%s,  %s)".formatted(first.time(), second.time()));
         if (startTime.isAfter(endTime)) throw new ConsistencyException("Energy calculation is not in order (%s ->  %s)".formatted(startTime, endTime));
         if (startTime.isBefore(first.time())) throw new ConsistencyException("Energy calculation before first power measure (%s < %s)".formatted(startTime, first.time()));
@@ -113,7 +113,7 @@ public class ConstantTariffSplitter implements TariffSplitter {
     /**
      * Assuming constant power (defined by the first measurement) during the whole cycle.
      */
-    Quantity<Power> powerEstimation(PowerMeasure first, PowerMeasure second, LocalDateTime startTime, LocalDateTime endTime) {
+    Quantity<Power> powerEstimation(PowerMeasure first, PowerMeasure second, ZonedDateTime startTime, ZonedDateTime endTime) {
         return first.power();
     }
 

@@ -4,7 +4,7 @@ import edu.jke.emobility.domain.session.LoadSession;
 
 import javax.measure.Quantity;
 import javax.measure.quantity.Energy;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -21,9 +21,9 @@ public record SessionConsumption(
      * Aggregate the list of consumptions into fixed time intervals starting before the session start.
      */
     public List<EnergyConsumption> convertInterval(int intervalMinutes) {
-        LocalDateTime sessionStart = session().chargingStart();
+        ZonedDateTime sessionStart = session().chargingStart();
         int startMinutes = (sessionStart.getMinute() / intervalMinutes) * intervalMinutes;
-        LocalDateTime start = sessionStart
+        ZonedDateTime start = sessionStart
                 .withMinute(startMinutes)
                 .withSecond(0)
                 .withNano(0);

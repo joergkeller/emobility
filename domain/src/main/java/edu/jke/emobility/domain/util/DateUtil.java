@@ -2,6 +2,8 @@ package edu.jke.emobility.domain.util;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class DateUtil {
@@ -9,8 +11,30 @@ public class DateUtil {
     /**
      * Return the earlier of the two dates, null means unbounded and is treated as the latest possible date.
      */
+    public static ZonedDateTime earliest(ZonedDateTime left, ZonedDateTime right) {
+        if (left == null || left.isAfter(right)) {
+            return right;
+        } else {
+            return left;
+        }
+    }
+
+    /**
+     * Return the earlier of the two dates, null means unbounded and is treated as the latest possible date.
+     */
     public static LocalDateTime earliest(LocalDateTime left, LocalDateTime right) {
         if (left == null || left.isAfter(right)) {
+            return right;
+        } else {
+            return left;
+        }
+    }
+
+    /**
+     * Return the later of the two dates, null means unbounded and is treated as the earliest possible date.
+     */
+    public static ZonedDateTime latest(ZonedDateTime left, ZonedDateTime right) {
+        if (left == null || left.isBefore(right)) {
             return right;
         } else {
             return left;
@@ -44,5 +68,17 @@ public class DateUtil {
      */
     public static String format(LocalDateTime timestamp) {
         return timestamp == null ? "" : timestamp.withNano(0).format(DateTimeFormatter.ISO_DATE_TIME);
+    }
+
+    /**
+     * Format a timestamp in ISO-8601 format without nanoseconds. Timezone is set to the system default timezone.
+     * Empty string for null timestamps.
+     */
+    public static String format(ZonedDateTime timestamp) {
+        return timestamp == null ? "" : timestamp
+                .withZoneSameInstant(ZoneId.systemDefault())
+                .toLocalDateTime()
+                .withNano(0)
+                .format(DateTimeFormatter.ISO_DATE_TIME);
     }
 }

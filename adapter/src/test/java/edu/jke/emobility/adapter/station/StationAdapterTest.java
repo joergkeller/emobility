@@ -78,26 +78,26 @@ public class StationAdapterTest {
     void parseSessionResponse() {
         List<SessionEntity> sessions = stationAdapter.parseSessionResponse(sessionJson);
         assertThat(sessions.size()).isEqualTo(8);
-        assertThat(sessions.get(0).chargingSessionId()).isEqualTo(10);
-        assertThat(sessions.get(0).user().firstName()).isEqualTo("Parkplatz");
-        assertThat(sessions.get(0).user().lastName()).isEqualTo("16");
-        assertThat(sessions.get(0).activeEnergyConsumed()).isEqualTo(21.467152);
-        assertThat(sessions.get(0).maxSessionPower()).isEqualTo(3.392);
+        assertThat(sessions.getFirst().chargingSessionId()).isEqualTo(10);
+        assertThat(sessions.getFirst().user().firstName()).isEqualTo("Parkplatz");
+        assertThat(sessions.getFirst().user().lastName()).isEqualTo("16");
+        assertThat(sessions.getFirst().activeEnergyConsumed()).isEqualTo(21.467152);
+        assertThat(sessions.getFirst().maxSessionPower()).isEqualTo(3.392);
     }
 
     @Test
     void parseProfileResponse() {
         List<ProfileEntity> profiles = stationAdapter.parseProfileResponse(profileJson);
         assertThat(profiles.size()).isEqualTo(72);
-        assertThat(profiles.get(0).time()).isEqualTo(ZonedDateTime.parse("2022-10-06T21:10:00+00:00"));
-        assertThat(profiles.get(0).connectorPower()).isEqualTo(10.304);
+        assertThat(profiles.getFirst().time()).isEqualTo(ZonedDateTime.parse("2022-10-06T21:10:00+00:00"));
+        assertThat(profiles.getFirst().connectorPower()).isEqualTo(10.304);
     }
 
     @Test
     void asPowerProfile() {
         ProfileEntity entity = new ProfileEntity(ZonedDateTime.parse("2022-10-06T21:10:00+00:00"), 10.3);
         PowerMeasure measure = stationAdapter.asPowerMeasure(entity);
-        assertThat(measure.time().getHour()).isEqualTo(23);
+        assertThat(measure.time().getHour()).isEqualTo(21);
         assertThat(measure.power().to(Units.WATT).getValue().intValue()).isEqualTo(10300);
     }
 
@@ -109,7 +109,7 @@ public class StationAdapterTest {
         SessionEntity entity = new SessionEntity(identification, user, 123, start, null, null, 0, 0, 12.5, 3.7, "Fast", "LocalStopUserDisconnectedCableFromVehicle");
         LoadSession session = stationAdapter.asLoadSession(entity);
         assertThat(session.userIdentification().name()).isEqualTo("First Last");
-        assertThat(session.chargingStart()).isEqualTo(start.toLocalDateTime());
+        assertThat(session.chargingStart()).isEqualTo(start);
         assertThat(session.energy().toString()).isEqualTo("12.5 kWh");
         assertThat(session.maxPower().toString()).isEqualTo("3.7 kW");
         assertThat(session.mode()).isEqualTo("Fast");

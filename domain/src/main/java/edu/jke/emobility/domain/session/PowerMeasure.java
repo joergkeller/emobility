@@ -2,9 +2,9 @@ package edu.jke.emobility.domain.session;
 
 import javax.measure.Quantity;
 import javax.measure.quantity.Power;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 public record PowerMeasure(
-        LocalDateTime time,
+        ZonedDateTime time,
         Quantity<Power> power
 ) {}

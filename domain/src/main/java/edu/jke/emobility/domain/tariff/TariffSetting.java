@@ -2,10 +2,7 @@ package edu.jke.emobility.domain.tariff;
 
 import edu.jke.emobility.domain.util.DateUtil;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -41,10 +38,13 @@ public class TariffSetting {
             DayOfWeek.SUNDAY,    new ElevationTime(null, null)
     );
 
-    public List<LocalDateTime> findTariffChangeTimes(LocalDateTime from, LocalDateTime to) {
-        return from.toLocalDate().datesUntil(to.toLocalDate().plusDays(1))
+    public List<ZonedDateTime> findTariffChangeTimes(ZonedDateTime from, ZonedDateTime to) {
+        LocalDateTime startTime = from.toLocalDateTime();
+        LocalDateTime endTime = to.toLocalDateTime();
+        return startTime.toLocalDate().datesUntil(endTime.toLocalDate().plusDays(1))
                 .flatMap(this::elevationTimesForDate)
-                .filter(changeTime -> isBetween(changeTime, from, to))
+                .filter(changeTime -> isBetween(changeTime, startTime, endTime))
+                .map(changeTime -> ZonedDateTime.of(changeTime, from.getZone()))
                 .toList();
     }
 
@@ -57,9 +57,10 @@ public class TariffSetting {
         return from.isBefore(change) && change.isBefore(to);
     }
 
-    public Tariff validAt(LocalDateTime instant) {
-        ElevationTime elevationTime = elevationTimes.get(instant.getDayOfWeek());
-        return elevationTime.isElevated(instant.toLocalTime()) ? Tariff.ELEVATED : Tariff.BASIC;
+    public Tariff validAt(ZonedDateTime instant) {
+        LocalDateTime localInstant = instant.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+        ElevationTime elevationTime = elevationTimes.get(localInstant.getDayOfWeek());
+        return elevationTime.isElevated(localInstant.toLocalTime()) ? Tariff.ELEVATED : Tariff.BASIC;
     }
 
 }

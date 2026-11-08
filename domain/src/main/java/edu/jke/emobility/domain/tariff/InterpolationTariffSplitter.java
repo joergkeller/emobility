@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.measure.Quantity;
 import javax.measure.quantity.Power;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
@@ -24,7 +24,7 @@ public class InterpolationTariffSplitter extends ConstantTariffSplitter {
      * is the average of the interpolated values at start and end time respectively.
      */
     @Override
-    Quantity<Power> powerEstimation(PowerMeasure first, PowerMeasure second, LocalDateTime startTime, LocalDateTime endTime) {
+    Quantity<Power> powerEstimation(PowerMeasure first, PowerMeasure second, ZonedDateTime startTime, ZonedDateTime endTime) {
         long totalTime = SECONDS.between(first.time(), second.time());
         Quantity<Power> firstPower = first.power();
         Quantity<Power> secondPower = second.power();
@@ -33,8 +33,7 @@ public class InterpolationTariffSplitter extends ConstantTariffSplitter {
         long timeToEnd = SECONDS.between((first.time()), endTime);
         Quantity<Power> estimatedEndPower = EnergyUtil.linearInterpolation(firstPower, secondPower, totalTime, timeToEnd);
 
-        Quantity<Power> averagePower = EnergyUtil.average(estimatedStartPower, estimatedEndPower);
-        return averagePower;
+        return EnergyUtil.average(estimatedStartPower, estimatedEndPower);
     }
 
 }

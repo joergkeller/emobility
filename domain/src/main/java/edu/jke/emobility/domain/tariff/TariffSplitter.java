@@ -4,7 +4,7 @@ import edu.jke.emobility.domain.error.ConsistencyException;
 import edu.jke.emobility.domain.session.PowerMeasure;
 import edu.jke.emobility.domain.session.PowerProfile;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,16 +24,16 @@ public interface TariffSplitter {
      * Ensure that the power profile covers the complete time range by adding measures at the start and end times
      * if they are missing.
      */
-    default List<PowerMeasure> complementProfile(List<PowerMeasure> powerProfile, LocalDateTime startTime, LocalDateTime endTime) {
+    default List<PowerMeasure> complementProfile(List<PowerMeasure> powerProfile, ZonedDateTime startTime, ZonedDateTime endTime) {
         if (powerProfile.isEmpty()) throw new ConsistencyException("Missing power profile");
 
         ArrayList<PowerMeasure> fullProfile = new ArrayList<>(powerProfile);
-        PowerMeasure firstMeasure = fullProfile.get(0);
+        PowerMeasure firstMeasure = fullProfile.getFirst();
         if (firstMeasure.time().isAfter(startTime)) {
-            fullProfile.add(0, new PowerMeasure(startTime, firstMeasure.power()));
+            fullProfile.addFirst(new PowerMeasure(startTime, firstMeasure.power()));
         }
 
-        PowerMeasure lastMeasure = fullProfile.get(fullProfile.size() - 1);
+        PowerMeasure lastMeasure = fullProfile.getLast();
         if (lastMeasure.time().isBefore(endTime)) {
             fullProfile.add(new PowerMeasure(endTime, lastMeasure.power()));
         }

@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.measure.Quantity;
 import javax.measure.quantity.Energy;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static edu.jke.emobility.domain.value.CustomUnits.*;
@@ -31,8 +31,8 @@ public class InterpolationTariffSplitterTest {
      */
     @Test
     void singleTariff_singleProfile() {
-        LocalDateTime from = LocalDateTime.parse("2022-10-09T00:00:00");
-        LocalDateTime to = LocalDateTime.parse("2022-10-09T01:00:00");
+        ZonedDateTime from = ZonedDateTime.parse("2022-10-09T00:00:00Z");
+        ZonedDateTime to = ZonedDateTime.parse("2022-10-09T01:00:00Z");
         PowerProfile profile = new PowerProfile(
                 new LoadSession(from, to, new UserIdentification("tbd"), ZERO_ENERGY, ZERO_POWER, null, null),
                 List.of(
@@ -41,8 +41,8 @@ public class InterpolationTariffSplitterTest {
 
         List<EnergyConsumption> consumptions = splitter.calculateConsumptions(profile).detailConsumptions();
         assertThat(consumptions.size()).isEqualTo(1);
-        assertThat(consumptions.get(0).tariff()).isEqualTo(TariffSetting.Tariff.BASIC);
-        assertThat(consumptions.get(0).energy().to(KILO(WATT_HOUR)).toString()).isEqualTo("5 kWh");
+        assertThat(consumptions.getFirst().tariff()).isEqualTo(TariffSetting.Tariff.BASIC);
+        assertThat(consumptions.getFirst().energy().to(KILO(WATT_HOUR)).toString()).isEqualTo("5 kWh");
     }
 
     /**
@@ -56,18 +56,18 @@ public class InterpolationTariffSplitterTest {
      */
     @Test
     void singleTariff_longProfile() {
-        LocalDateTime from = LocalDateTime.parse("2022-10-09T00:00:00");
-        LocalDateTime to   = LocalDateTime.parse("2022-10-09T01:00:00");
+        ZonedDateTime from = ZonedDateTime.parse("2022-10-09T00:00:00Z");
+        ZonedDateTime to   = ZonedDateTime.parse("2022-10-09T01:00:00Z");
         PowerProfile profile = new PowerProfile(
                 new LoadSession(from, to, new UserIdentification("tbd"), ZERO_ENERGY, ZERO_POWER, null, null),
                 List.of(
-                    new PowerMeasure(LocalDateTime.parse("2022-10-08T23:00:00"), getQuantity(5, KILO(WATT))),
-                    new PowerMeasure(LocalDateTime.parse("2022-10-09T02:00:00"), getQuantity(5, KILO(WATT)))
+                    new PowerMeasure(ZonedDateTime.parse("2022-10-08T23:00:00Z"), getQuantity(5, KILO(WATT))),
+                    new PowerMeasure(ZonedDateTime.parse("2022-10-09T02:00:00Z"), getQuantity(5, KILO(WATT)))
                 ));
 
         List<EnergyConsumption> consumptions = splitter.calculateConsumptions(profile).detailConsumptions();
         assertThat(consumptions.size()).isEqualTo(1);
-        assertThat(consumptions.get(0).energy().to(KILO(WATT_HOUR)).toString()).isEqualTo("5 kWh");
+        assertThat(consumptions.getFirst().energy().to(KILO(WATT_HOUR)).toString()).isEqualTo("5 kWh");
     }
 
     /**
@@ -79,8 +79,8 @@ public class InterpolationTariffSplitterTest {
      */
     @Test
     void singleTariff_meanProfile() {
-        LocalDateTime from = LocalDateTime.parse("2022-10-09T00:00:00");
-        LocalDateTime to = LocalDateTime.parse("2022-10-09T01:00:00");
+        ZonedDateTime from = ZonedDateTime.parse("2022-10-09T00:00:00Z");
+        ZonedDateTime to = ZonedDateTime.parse("2022-10-09T01:00:00Z");
         PowerProfile profile = new PowerProfile(
                 new LoadSession(from, to, new UserIdentification("tbd"), ZERO_ENERGY, ZERO_POWER, null, null),
                 List.of(
@@ -90,7 +90,7 @@ public class InterpolationTariffSplitterTest {
 
         List<EnergyConsumption> consumptions = splitter.calculateConsumptions(profile).detailConsumptions();
         assertThat(consumptions.size()).isEqualTo(1);
-        assertThat(consumptions.get(0).energy().to(KILO(WATT_HOUR)).toString()).isEqualTo("5 kWh");
+        assertThat(consumptions.getFirst().energy().to(KILO(WATT_HOUR)).toString()).isEqualTo("5 kWh");
     }
 
     /**
@@ -102,13 +102,13 @@ public class InterpolationTariffSplitterTest {
      */
     @Test
     void singleTariff_changingProfile() {
-        LocalDateTime from = LocalDateTime.parse("2022-10-09T00:00:00");
-        LocalDateTime to = LocalDateTime.parse("2022-10-09T01:00:00");
+        ZonedDateTime from = ZonedDateTime.parse("2022-10-09T00:00:00Z");
+        ZonedDateTime to = ZonedDateTime.parse("2022-10-09T01:00:00Z");
         PowerProfile profile = new PowerProfile(
                 new LoadSession(from, to, new UserIdentification("tbd"), ZERO_ENERGY, ZERO_POWER, null, null),
                 List.of(
-                    new PowerMeasure(LocalDateTime.parse("2022-10-09T00:20:00"), getQuantity(6, KILO(WATT))),
-                    new PowerMeasure(LocalDateTime.parse("2022-10-09T01:00:00"), getQuantity(3, KILO(WATT)))
+                    new PowerMeasure(ZonedDateTime.parse("2022-10-09T00:20:00Z"), getQuantity(6, KILO(WATT))),
+                    new PowerMeasure(ZonedDateTime.parse("2022-10-09T01:00:00Z"), getQuantity(3, KILO(WATT)))
                 ));
 
         List<EnergyConsumption> consumptions = splitter.calculateConsumptions(profile).detailConsumptions();
@@ -127,8 +127,8 @@ public class InterpolationTariffSplitterTest {
      */
     @Test
     void calculateEnergy_fullPeriod() {
-        PowerMeasure firstMeasure = new PowerMeasure(LocalDateTime.parse("2022-10-09T00:00:00"), getQuantity(6, KILO(WATT)));
-        PowerMeasure secondMeasure = new PowerMeasure(LocalDateTime.parse("2022-10-09T01:00:00"), getQuantity(4, KILO(WATT)));
+        PowerMeasure firstMeasure = new PowerMeasure(ZonedDateTime.parse("2022-10-09T00:00:00Z"), getQuantity(6, KILO(WATT)));
+        PowerMeasure secondMeasure = new PowerMeasure(ZonedDateTime.parse("2022-10-09T01:00:00Z"), getQuantity(4, KILO(WATT)));
         Quantity<Energy> energy = splitter.calculateEnergy(firstMeasure, secondMeasure, firstMeasure.time(), secondMeasure.time());
         assertThat(energy.to(KILO(WATT_HOUR)).toString()).isEqualTo("5 kWh");
     }
@@ -143,10 +143,10 @@ public class InterpolationTariffSplitterTest {
      */
     @Test
     void calculateEnergy_startPeriod() {
-        PowerMeasure firstMeasure = new PowerMeasure(LocalDateTime.parse("2022-10-09T00:00:00"), getQuantity(6, KILO(WATT)));
-        PowerMeasure secondMeasure = new PowerMeasure(LocalDateTime.parse("2022-10-09T01:00:00"), getQuantity(4, KILO(WATT)));
-        LocalDateTime from = LocalDateTime.parse("2022-10-09T00:00:00");
-        LocalDateTime to   = LocalDateTime.parse("2022-10-09T00:30:00");
+        PowerMeasure firstMeasure = new PowerMeasure(ZonedDateTime.parse("2022-10-09T00:00:00Z"), getQuantity(6, KILO(WATT)));
+        PowerMeasure secondMeasure = new PowerMeasure(ZonedDateTime.parse("2022-10-09T01:00:00Z"), getQuantity(4, KILO(WATT)));
+        ZonedDateTime from = ZonedDateTime.parse("2022-10-09T00:00:00Z");
+        ZonedDateTime to   = ZonedDateTime.parse("2022-10-09T00:30:00Z");
         Quantity<Energy> energy = splitter.calculateEnergy(firstMeasure, secondMeasure, from, to);
         assertThat(energy.to(KILO(WATT_HOUR)).toString()).isEqualTo("2.75 kWh");
     }
@@ -161,10 +161,10 @@ public class InterpolationTariffSplitterTest {
      */
     @Test
     void calculateEnergy_endPeriod() {
-        PowerMeasure firstMeasure = new PowerMeasure(LocalDateTime.parse("2022-10-09T00:00:00"), getQuantity(6, KILO(WATT)));
-        PowerMeasure secondMeasure = new PowerMeasure(LocalDateTime.parse("2022-10-09T01:00:00"), getQuantity(4, KILO(WATT)));
-        LocalDateTime from = LocalDateTime.parse("2022-10-09T00:30:00");
-        LocalDateTime to   = LocalDateTime.parse("2022-10-09T01:00:00");
+        PowerMeasure firstMeasure = new PowerMeasure(ZonedDateTime.parse("2022-10-09T00:00:00Z"), getQuantity(6, KILO(WATT)));
+        PowerMeasure secondMeasure = new PowerMeasure(ZonedDateTime.parse("2022-10-09T01:00:00Z"), getQuantity(4, KILO(WATT)));
+        ZonedDateTime from = ZonedDateTime.parse("2022-10-09T00:30:00Z");
+        ZonedDateTime to   = ZonedDateTime.parse("2022-10-09T01:00:00Z");
         Quantity<Energy> energy = splitter.calculateEnergy(firstMeasure, secondMeasure, from, to);
         assertThat(energy.to(KILO(WATT_HOUR)).toString()).isEqualTo("2.25 kWh");
     }
@@ -180,10 +180,10 @@ public class InterpolationTariffSplitterTest {
      */
     @Test
     void calculateEnergy_partialPeriod() {
-        PowerMeasure firstMeasure = new PowerMeasure(LocalDateTime.parse("2022-10-09T00:00:00"), getQuantity(6, KILO(WATT)));
-        PowerMeasure secondMeasure = new PowerMeasure(LocalDateTime.parse("2022-10-09T01:00:00"), getQuantity(4, KILO(WATT)));
-        LocalDateTime from = LocalDateTime.parse("2022-10-09T00:15:00");
-        LocalDateTime to   = LocalDateTime.parse("2022-10-09T00:45:00");
+        PowerMeasure firstMeasure = new PowerMeasure(ZonedDateTime.parse("2022-10-09T00:00:00Z"), getQuantity(6, KILO(WATT)));
+        PowerMeasure secondMeasure = new PowerMeasure(ZonedDateTime.parse("2022-10-09T01:00:00Z"), getQuantity(4, KILO(WATT)));
+        ZonedDateTime from = ZonedDateTime.parse("2022-10-09T00:15:00Z");
+        ZonedDateTime to   = ZonedDateTime.parse("2022-10-09T00:45:00Z");
         Quantity<Energy> energy = splitter.calculateEnergy(firstMeasure, secondMeasure, from, to);
         assertThat(energy.to(KILO(WATT_HOUR)).toString()).isEqualTo("2.5 kWh");
     }

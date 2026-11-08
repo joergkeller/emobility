@@ -22,13 +22,10 @@ import tech.units.indriya.quantity.Quantities;
 import javax.measure.Quantity;
 import javax.measure.quantity.Power;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static javax.measure.MetricPrefix.KILO;
 import static tech.units.indriya.unit.Units.WATT;
@@ -62,7 +59,7 @@ public class StationAdapter implements StationEndpoint {
         try (Response response = client.newCall(request).execute()) {
             log.info("Login: {} ({})", response.message(), response.code());
             if (!response.isSuccessful()) throw new AuthenticationException(response.message());
-            consumeLoginResponse(response.body().string());
+            consumeLoginResponse(Objects.requireNonNull(response.body()).string());
         } catch (IOException ex) {
             throw new ServiceException(ex);
         }
@@ -103,7 +100,7 @@ public class StationAdapter implements StationEndpoint {
         try (Response response = client.newCall(request).execute()) {
             log.info("Load sessions: {} ({})", response.message(), response.code());
             if (!response.isSuccessful()) throw new ServiceException(response.message());
-            String json = response.body().string();
+            String json = Objects.requireNonNull(response.body()).string();
             log.info("Sessions: {}", json.replaceAll("\\s+", " "));
             return json;
         } catch (IOException ex) {
@@ -126,7 +123,7 @@ public class StationAdapter implements StationEndpoint {
         try (Response response = client.newCall(request).execute()) {
             log.info("Load profile: {} ({})", response.message(), response.code());
             if (!response.isSuccessful()) throw new ServiceException(response.message());
-            String json = response.body().string();
+            String json = Objects.requireNonNull(response.body()).string();
 //            log.info("Profile: {}", json.replaceAll("\\s+", " "));
             return json;
         } catch (IOException ex) {
@@ -191,8 +188,8 @@ public class StationAdapter implements StationEndpoint {
             );
         }
         return new LoadSession(
-                started.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime(),
-                ended == null ? null : ended.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime(),
+                started,
+                ended,
                 identification,
                 EnergyUtil.kWh(entity.activeEnergyConsumed()),
                 EnergyUtil.kW(entity.maxSessionPower()),
@@ -202,13 +199,10 @@ public class StationAdapter implements StationEndpoint {
     }
 
     @Override
-    public List<LoadSession> importSessions(String stationName, LocalDateTime from, LocalDateTime to) {
+    public List<LoadSession> importSessions(String stationName, ZonedDateTime from, ZonedDateTime to) {
         if (isLoggedOut()) login(stationName, this.username, this.password);
 
-        ZoneId zoneId = ZoneId.systemDefault();
-        ZonedDateTime start = ZonedDateTime.of(from, zoneId);
-        ZonedDateTime end = ZonedDateTime.of(to, zoneId);
-        String json = loadSessions(stationName, start, end);
+        String json = loadSessions(stationName, from, to);
         return parseSessionResponse(json).stream()
                 .map(this::asLoadSession)
                 .toList();
@@ -224,7 +218,7 @@ public class StationAdapter implements StationEndpoint {
     }
 
     PowerMeasure asPowerMeasure(ProfileEntity entity) {
-        LocalDateTime time = entity.time().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+        ZonedDateTime time = entity.time();
         Quantity<Power> power = Quantities.getQuantity(entity.connectorPower(), KILO(WATT));
         return new PowerMeasure(time, power);
     }
@@ -233,11 +227,8 @@ public class StationAdapter implements StationEndpoint {
     public PowerProfile importProfile(String stationName, LoadSession session) {
         if (isLoggedOut()) login(stationName, this.username, this.password);
 
-        LocalDateTime chargingStart = session.chargingStart();
-        LocalDateTime chargingEnd = session.chargingEnd();
-        ZoneId zoneId = ZoneId.systemDefault();
-        ZonedDateTime start = ZonedDateTime.of(chargingStart, zoneId);
-        ZonedDateTime end = chargingEnd != null ? ZonedDateTime.of(chargingEnd, zoneId) : ZonedDateTime.now();
+        ZonedDateTime start = session.chargingStart();
+        ZonedDateTime end = session.chargingEnd() != null ? session.chargingEnd() : ZonedDateTime.now();
         String json = loadProfile(stationName, start, end);
         List<PowerMeasure> measures = parseProfileResponse(json).stream()
                 .map(this::asPowerMeasure)

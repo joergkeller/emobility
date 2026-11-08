@@ -4,7 +4,7 @@ import edu.jke.emobility.domain.util.DateUtil;
 
 import javax.measure.Quantity;
 import javax.measure.quantity.Energy;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,8 +14,8 @@ import static edu.jke.emobility.domain.value.CustomUnits.ZERO_ENERGY;
  * Energy consumption in a time interval with tariff information.
  */
 public record EnergyConsumption(
-        LocalDateTime startTime,
-        LocalDateTime endTime,
+        ZonedDateTime startTime,
+        ZonedDateTime endTime,
         TariffSetting.Tariff tariff,
         Quantity<Energy> energy
 ) {
@@ -40,7 +40,7 @@ public record EnergyConsumption(
     /**
      * Aggregate a list of consumptions into fixed time intervals.
      */
-    public static List<EnergyConsumption> convertInterval(List<EnergyConsumption> consumptions, LocalDateTime start, int minutes) {
+    public static List<EnergyConsumption> convertInterval(List<EnergyConsumption> consumptions, ZonedDateTime start, int minutes) {
         if (consumptions.isEmpty()) return List.of();
 
         EnergyConsumption currentInterval = new EnergyConsumption(start, start.plusMinutes(minutes), consumptions.getFirst().tariff, ZERO_ENERGY);
@@ -49,7 +49,7 @@ public record EnergyConsumption(
             while (consumption.startTime().isAfter(currentInterval.endTime)) {
                 // trailing empty interval
                 aggregated.add(currentInterval);
-                LocalDateTime nextStart = currentInterval.endTime;
+                ZonedDateTime nextStart = currentInterval.endTime;
                 currentInterval = new EnergyConsumption(nextStart, nextStart.plusMinutes(minutes), consumption.tariff, ZERO_ENERGY);
             }
             if (consumption.startTime().isBefore(currentInterval.endTime)) {
@@ -58,7 +58,7 @@ public record EnergyConsumption(
             } else {
                 // start next interval
                 aggregated.add(currentInterval);
-                LocalDateTime nextStart = currentInterval.endTime;
+                ZonedDateTime nextStart = currentInterval.endTime;
                 currentInterval = new EnergyConsumption(nextStart, nextStart.plusMinutes(minutes), consumption.tariff, consumption.energy());
             }
         }

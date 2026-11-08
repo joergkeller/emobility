@@ -1,13 +1,12 @@
 package edu.jke.emobility.domain.session;
 
-import edu.jke.emobility.domain.error.ConsistencyException;
 import edu.jke.emobility.domain.tariff.SessionConsumption;
 import edu.jke.emobility.domain.value.CustomUnits;
 import edu.jke.emobility.domain.value.UserIdentification;
 
 import javax.measure.Quantity;
 import javax.measure.quantity.Energy;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import static edu.jke.emobility.domain.util.DateUtil.earliest;
 import static edu.jke.emobility.domain.util.DateUtil.latest;
@@ -17,8 +16,8 @@ import static edu.jke.emobility.domain.util.DateUtil.latest;
  */
 public record SessionSummary(
         UserIdentification userIdentification,
-        LocalDateTime start,
-        LocalDateTime end,
+        ZonedDateTime start,
+        ZonedDateTime end,
         long sessionCount,
         Quantity<Energy> energy,
         Quantity<Energy> basicEnergy,
@@ -30,9 +29,9 @@ public record SessionSummary(
 
     public SessionSummary add(SessionConsumption consumption) {
 //        if (userIdentification == null || userIdentification.equals(consumption.session().userIdentification())) {
-            LocalDateTime sessionStart = consumption.session().chargingStart();
-            LocalDateTime sessionEnd = consumption.session().chargingEnd();
-            if (sessionEnd == null) sessionEnd = LocalDateTime.now();
+            ZonedDateTime sessionStart = consumption.session().chargingStart();
+            ZonedDateTime sessionEnd = consumption.session().chargingEnd();
+            if (sessionEnd == null) sessionEnd = ZonedDateTime.now();
             return new SessionSummary(
                     consumption.session().userIdentification(),
                     earliest(start, sessionStart),
