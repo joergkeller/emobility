@@ -29,7 +29,7 @@ public record SessionSummary(
     }
 
     public SessionSummary add(SessionConsumption consumption) {
-        if (userIdentification == null || userIdentification.equals(consumption.session().userIdentification())) {
+//        if (userIdentification == null || userIdentification.equals(consumption.session().userIdentification())) {
             LocalDateTime sessionStart = consumption.session().chargingStart();
             LocalDateTime sessionEnd = consumption.session().chargingEnd();
             if (sessionEnd == null) sessionEnd = LocalDateTime.now();
@@ -41,9 +41,9 @@ public record SessionSummary(
                     energy.add(consumption.session().energy()),
                     basicEnergy.add(consumption.basicEnergy()),
                     elevatedEnergy.add(consumption.elevatedEnergy()));
-        } else {
-            throw new ConsistencyException("Mismatching charger ids %s and %s".formatted(userIdentification, consumption.session().userIdentification()));
-        }
+//        } else {
+//            throw new ConsistencyException("Mismatching charger ids %s and %s".formatted(userIdentification, consumption.session().userIdentification()));
+//        }
     }
 
     public boolean isValid() {

@@ -20,12 +20,14 @@ public record SessionConsumption(
     /**
      * Aggregate the list of consumptions into fixed time intervals starting before the session start.
      */
-    public List<EnergyConsumption> convertInterval(int minutes) {
-        LocalDateTime start = session().chargingStart()
-                .withMinute(0)
+    public List<EnergyConsumption> convertInterval(int intervalMinutes) {
+        LocalDateTime sessionStart = session().chargingStart();
+        int startMinutes = (sessionStart.getMinute() / intervalMinutes) * intervalMinutes;
+        LocalDateTime start = sessionStart
+                .withMinute(startMinutes)
                 .withSecond(0)
                 .withNano(0);
-        return EnergyConsumption.convertInterval(detailConsumptions(), start, minutes);
+        return EnergyConsumption.convertInterval(detailConsumptions(), start, intervalMinutes);
     }
 
 }

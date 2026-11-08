@@ -1,15 +1,14 @@
 root@etrel.com
-toor
 
-04	Lüthi   	http://10.0.0.214/
-05	Lüthi   	http://10.0.0.248/
-06	Häusermann	http://10.0.0.241/
-08  Buck        http://10.0.0.150
-10	Lobsiger	http://10.0.0.225/
-13	Ohlin		http://10.0.0.152/
-16	Schlegel	http://10.0.0.165/
-20	Anet		http://10.0.0.209/
-24	Lüthi   	http://10.0.0.234/
+04	Lüthi   	http://10.0.0.214/  platz4.local
+05	Lüthi   	http://10.0.0.248/  platz5.local
+06	Häusermann	http://10.0.0.241/  platz6.local
+08  Buck        http://10.0.0.150/  platz8.local
+10	Lobsiger	http://10.0.0.225/  platz10.local
+13	Ohlin		http://10.0.0.152/  platz13.local
+16	Schlegel	http://10.0.0.165/  platz16.local
+20	Anet		http://10.0.0.209/  platz20.local (master)
+24	Lüthi   	http://10.0.0.234/  platz24.local
 
 Konfiguration > Device configuration > Zeit- und Spracheinstellungen > Zeiteinstellungen
 Zeitsynchronisation (NTP): pool.ntp.org,time.windows.com

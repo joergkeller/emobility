@@ -27,7 +27,7 @@ public record LoadSession(
     }
 
     public boolean isValid() {
-        if (userIdentification.name().equals("Unknown")) return false;
+//        if (userIdentification.name().equals("Unknown")) return false;
         if (energy.to(KILO(WATT_HOUR)).getValue().longValue() > 1000) return false;
         return true;
     }

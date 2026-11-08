@@ -127,7 +127,7 @@ public class StationAdapter implements StationEndpoint {
             log.info("Load profile: {} ({})", response.message(), response.code());
             if (!response.isSuccessful()) throw new ServiceException(response.message());
             String json = response.body().string();
-            log.info("Profile: {}", json.replaceAll("\\s+", " "));
+//            log.info("Profile: {}", json.replaceAll("\\s+", " "));
             return json;
         } catch (IOException ex) {
             throw new ServiceException(ex);

@@ -20,6 +20,10 @@ public interface TariffSplitter {
 
     SessionConsumption scaleConsumptionToSession(SessionConsumption consumption);
 
+    /**
+     * Ensure that the power profile covers the complete time range by adding measures at the start and end times
+     * if they are missing.
+     */
     default List<PowerMeasure> complementProfile(List<PowerMeasure> powerProfile, LocalDateTime startTime, LocalDateTime endTime) {
         if (powerProfile.isEmpty()) throw new ConsistencyException("Missing power profile");
 

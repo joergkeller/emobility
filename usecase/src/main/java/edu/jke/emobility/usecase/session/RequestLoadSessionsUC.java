@@ -90,15 +90,20 @@ public class RequestLoadSessionsUC {
             EnergyUtil.formatNoUnit(summary.elevatedEnergy(), KILO(WATT_HOUR))
     );
 
+    /**
+     * Perform the use case, load all sessions for the given stations and time range and write the output files.
+     */
     public void loadSessions(Request request) {
-        String sessionFileName = "Alle-Ladestationen-Ab-%tF".formatted(request.from());
-        String summaryFileName = "Zusammenfassung-Ab-%tF".formatted(request.from());
+        LocalDateTime from = request.from();
+        LocalDateTime to = request.to();
+        String sessionFileName = "Alle-Ladestationen-Ab-%tF".formatted(from);
+        String summaryFileName = "Zusammenfassung-Ab-%tF".formatted(from);
         try(
             OutputWriter<SessionConsumption> sessionWriter = writerFactory.createWriter(sessionFileName, sessionFields, sessionMapper);
             OutputWriter<SessionSummary> summaryWriter = writerFactory.createWriter(summaryFileName, summaryFields, summaryMapper);
         ) {
             request.stationNames().stream()
-                    .map(name -> importSessions(request, name))
+                    .map(name -> importSessions(name, from, to))
                     .peek(this::logSessions)
                     .peek(sessionWriter::write)
                     .map(this::sessionSummary)
@@ -112,16 +117,20 @@ public class RequestLoadSessionsUC {
         return value == null ? defaultValue : value;
     }
 
-    private List<SessionConsumption> importSessions(Request request, String name) {
-        String profileFileName = "Ladestation-%s-Ab-%tF".formatted(name, request.from());
+    /**
+     * Import all sessions for one station in the given time range.
+     * Write the detailed load profile to an output file and return the list of consumptions.
+     */
+    private List<SessionConsumption> importSessions(String stationName, LocalDateTime from, LocalDateTime to) {
+        String profileFileName = "Ladestation-%s-Ab-%tF".formatted(stationName, from);
         try(
             OutputWriter<EnergyConsumption> profileWriter = writerFactory.createWriter(profileFileName, profileFields, profileMapper);
         ) {
-            List<LoadSession> sessions = stationAdapter.importSessions(name, request.from(), request.to());
+            List<LoadSession> sessions = stationAdapter.importSessions(stationName, from, to);
 
             List<SessionConsumption> consumption = sessions.stream()
                     .filter(session -> session.isValid())
-                    .map(session -> stationAdapter.importProfile(name, session))
+                    .map(session -> stationAdapter.importProfile(stationName, session))
                     .map(tariffSplitter::calculateConsumptions)
                     .map(tariffSplitter::scaleConsumptionToSession)
                     .toList();
@@ -134,7 +143,7 @@ public class RequestLoadSessionsUC {
             return consumption;
         } catch(ServiceException exception) {
             if (exception.getCause() instanceof SocketTimeoutException) {
-                log.warn("Station {} is not available", name);
+                log.warn("Station {} is not available", stationName);
                 return Collections.emptyList();
             } else {
                 throw exception;

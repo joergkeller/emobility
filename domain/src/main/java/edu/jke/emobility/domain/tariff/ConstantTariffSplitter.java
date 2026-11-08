@@ -34,6 +34,9 @@ public class ConstantTariffSplitter implements TariffSplitter {
         this.tariff = tariff;
     }
 
+    /**
+     * Calculate the energy consumption per tariff period based on discrete power profile measurements.
+     */
     @Override
     public SessionConsumption calculateConsumptions(PowerProfile profile) {
         LocalDateTime sessionStart = profile.session().chargingStart();
@@ -63,7 +66,6 @@ public class ConstantTariffSplitter implements TariffSplitter {
 
         Quantity<Energy> sessionEnergy = profile.session().energy().to(WATT_HOUR);
         Quantity<Energy> delta = totalEnergy.subtract(sessionEnergy);
-        log.info("Approximation of power consumption with error {}", EnergyUtil.format(delta, WATT_HOUR));
 
         return new SessionConsumption(
                 profile.session(),
@@ -72,6 +74,9 @@ public class ConstantTariffSplitter implements TariffSplitter {
                 consumptions);
     }
 
+    /**
+     * Scale the calculated consumption to the exact session energy.
+     */
     @Override
     public SessionConsumption scaleConsumptionToSession(SessionConsumption consumption) {
         Quantity<Energy> totalEnergy = consumption.basicEnergy()
@@ -91,11 +96,14 @@ public class ConstantTariffSplitter implements TariffSplitter {
                 EnergyConsumption.multiply(consumption.detailConsumptions(), scalingFactor));
     }
 
+    /**
+     * Calculate the energy consumed between two power measurements over a given time interval.
+     */
     Quantity<Energy> calculateEnergy(PowerMeasure first, PowerMeasure second, LocalDateTime startTime, LocalDateTime endTime) {
-        if (first.time().isAfter(second.time())) throw new ConsistencyException("Power profiling is not in order");
-        if (startTime.isAfter(endTime)) throw new ConsistencyException("Energy calculation is not in order");
-        if (startTime.isBefore(first.time())) throw new ConsistencyException("Energy calculation before first power measure");
-        if (endTime.isAfter(second.time())) throw new ConsistencyException("Energy calculation after last power measure");
+        if (first.time().isAfter(second.time())) throw new ConsistencyException("Power profiling is not in order (%s,  %s)".formatted(first.time(), second.time()));
+        if (startTime.isAfter(endTime)) throw new ConsistencyException("Energy calculation is not in order (%s ->  %s)".formatted(startTime, endTime));
+        if (startTime.isBefore(first.time())) throw new ConsistencyException("Energy calculation before first power measure (%s < %s)".formatted(startTime, first.time()));
+        if (endTime.isAfter(second.time())) throw new ConsistencyException("Energy calculation after last power measure (%s > %s)".formatted(endTime, second.time()));
 
         Quantity<Power> averagePower = powerEstimation(first, second, startTime, endTime);
         Quantity<Time> duration = EnergyUtil.time(SECONDS.between(startTime, endTime), Units.SECOND);
